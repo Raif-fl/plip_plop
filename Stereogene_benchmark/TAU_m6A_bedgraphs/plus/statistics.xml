@@ -1,0 +1,12 @@
+<xml>
+<run  id="496a931a" Date="24.08.26 12:49:31" version="2.50">
+	<input  name1="1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled" name2="m6A_IP_1"/>
+	<res  nFgr="7689" nBkg="10000" Fg. Corr="0.0828" FgCorr_sd="0.222" Bg. Corr="-3.25e-04" BgCorr_sd="0.0821" Mann-Z="30.373" p-value="1.24e-202" PDF_report="" HTML_report=""/>
+	<prm bin="100" profPath="/tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/profiles/" trackPath="/tscc/projects/ps-yeolab3/kflanagan/RNA_protein_grammar/Stereogene_benchmark/TAU_m6A_bedgraphs/" resPath="/tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/rep_1/" report="NONE" chrom="/tscc/projects/ps-yeolab3/kflanagan/RNA_protein_grammar/annotations/chrNameLength.txt" bpType="SIGNAL" NA="0" threshold="0" kernelType="NORMAL" customKern="NONE" kernelSigma="1000" kernelShift="0" wSize="300000" wStep="300000" flankSize="0" maxNA="99" maxZero="99" nShuffle="10000" noiseLevel="0" complFg="IGNORE_STRAND" localShuffle="0" outSpectr="0" outChrom="0" writeDistr="SHORT" plotType="R" Cross="1" outLC="BASE" L_LC="-20" R_LC="1" AutoCorr="0" aliases="NONE" Rscript="Rscript" plotH="3" plotW="7" />
+</run>
+<run  id="4998f614" Date="24.08.26 13:40:11" version="2.50">
+	<input  name1="1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled" name2="m6A_IP_1"/>
+	<res  nFgr="7689" nBkg="10000" Fg. Corr="0.0828" FgCorr_sd="0.222" Bg. Corr="-3.25e-04" BgCorr_sd="0.0821" Mann-Z="30.373" p-value="1.24e-202" PDF_report="" HTML_report=""/>
+	<prm bin="100" profPath="/tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/profiles/" trackPath="/tscc/projects/ps-yeolab3/kflanagan/RNA_protein_grammar/Stereogene_benchmark/TAU_m6A_bedgraphs/" resPath="/tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/rep_1/" report="NONE" chrom="/tscc/projects/ps-yeolab3/kflanagan/RNA_protein_grammar/annotations/chrNameLength.txt" bpType="SIGNAL" NA="0" threshold="0" kernelType="NORMAL" customKern="NONE" kernelSigma="1000" kernelShift="0" wSize="300000" wStep="300000" flankSize="0" maxNA="99" maxZero="99" nShuffle="10000" noiseLevel="0" complFg="IGNORE_STRAND" localShuffle="0" outSpectr="0" outChrom="0" writeDistr="SHORT" plotType="R" Cross="1" outLC="BASE" L_LC="0" R_LC="0" AutoCorr="0" aliases="NONE" Rscript="Rscript" plotH="3" plotW="7" />
+</run>
+</xml>

@@ -1,0 +1,88 @@
+#409086-> ====== Start ====== deb=3
+#409086-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/profiles/1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled.bprof > does not exist. Preparing binary track
+#409086->     Make binary track <1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled>
+#409086-> File <1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled.bedGraph> line #4466987: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#409086->     Make binary track -> OK. Time=4.359s
+#409086-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/profiles/m6A_IP_1.bprof > does not exist. Preparing binary track
+#409086->     Make binary track <m6A_IP_1>
+#409086-> File <m6A_IP_1.bedGraph> line #907542: incorrect segment end: chrom=chr1  end=248956422.  Ignored
+#409086->     Make binary track -> OK. Time=5.31s
+#409086-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/profiles/1328_MAPTKD_WTTau_3XFLAG_IN_1.scaled.bprof > does not exist. Preparing binary track
+#409086->     Make binary track <1328_MAPTKD_WTTau_3XFLAG_IN_1.scaled>
+#409086-> File <1328_MAPTKD_WTTau_3XFLAG_IN_1.scaled.bedGraph> line #8089466: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#409086->     Make binary track -> OK. Time=6.432s
+#409086-> Preparation 3 tracks: Time=15.838s
+#409086-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#409086->   in1=<1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled> in2=<m6A_IP_1> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/rep_1/1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled~m6A_IP_1>
+#409086-> Foreground
+#409086-> Background
+#409086-> Correlations -> Done
+#409086-> Write statistics
+#409086-> Write Statistics -> Done
+#409086-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/rep_1/1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled~m6A_IP_1> => Done  time=8.212s
+#409086-> clear Correlator
+#409086-> ====== End ======
+#409101-> ====== Start ====== deb=3
+#409101-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/profiles/1328_MAPTKD_WTTau_3XFLAG_IP_2.scaled.bprof > does not exist. Preparing binary track
+#409101->     Make binary track <1328_MAPTKD_WTTau_3XFLAG_IP_2.scaled>
+#409101-> File <1328_MAPTKD_WTTau_3XFLAG_IP_2.scaled.bedGraph> line #7662098: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#409101->     Make binary track -> OK. Time=5.812s
+#409101-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/profiles/m6A_IP_2.bprof > does not exist. Preparing binary track
+#409101->     Make binary track <m6A_IP_2>
+#409101-> File <m6A_IP_2.bedGraph> line #1308630: incorrect segment end: chrom=chr1  end=248956422.  Ignored
+#409101->     Make binary track -> OK. Time=6.331s
+#409101-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/profiles/1328_MAPTKD_WTTau_3XFLAG_IN_2.scaled.bprof > does not exist. Preparing binary track
+#409101->     Make binary track <1328_MAPTKD_WTTau_3XFLAG_IN_2.scaled>
+#409101-> File <1328_MAPTKD_WTTau_3XFLAG_IN_2.scaled.bedGraph> line #8531010: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#409101->     Make binary track -> OK. Time=6.831s
+#409101-> Preparation 3 tracks: Time=18.988s
+#409101-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#409101->   in1=<1328_MAPTKD_WTTau_3XFLAG_IP_2.scaled> in2=<m6A_IP_2> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/rep_2/1328_MAPTKD_WTTau_3XFLAG_IP_2.scaled~m6A_IP_2>
+#409101-> Foreground
+#409101-> Background
+#409101-> Correlations -> Done
+#409101-> Write statistics
+#409101-> Write Statistics -> Done
+#409101-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/rep_2/1328_MAPTKD_WTTau_3XFLAG_IP_2.scaled~m6A_IP_2> => Done  time=8.864s
+#409101-> clear Correlator
+#409101-> ====== End ======
+#6a8c915d-> unknown value outLC=1
+#1059727-> ====== Start ====== deb=3
+#1059727-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/profiles/1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled.bprof > does not exist. Preparing binary track
+#1059727->     Make binary track <1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled>
+#1059727-> File <1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled.bedGraph> line #4466987: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#1059727->     Make binary track -> OK. Time=5.262s
+#1059727-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/profiles/m6A_IP_1.bprof > does not exist. Preparing binary track
+#1059727->     Make binary track <m6A_IP_1>
+#1059727-> File <m6A_IP_1.bedGraph> line #907542: incorrect segment end: chrom=chr1  end=248956422.  Ignored
+#1059727->     Make binary track -> OK. Time=5.400s
+#1059727-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/profiles/1328_MAPTKD_WTTau_3XFLAG_IN_1.scaled.bprof > does not exist. Preparing binary track
+#1059727->     Make binary track <1328_MAPTKD_WTTau_3XFLAG_IN_1.scaled>
+#1059727-> File <1328_MAPTKD_WTTau_3XFLAG_IN_1.scaled.bedGraph> line #8089466: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#1059727->     Make binary track -> OK. Time=6.763s
+#1059727-> Preparation 3 tracks: Time=17.507s
+#1059727-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#1059727->   in1=<1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled> in2=<m6A_IP_1> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/rep_1/1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled~m6A_IP_1>
+#1059727-> Foreground
+#1059727-> 
+Local Correlations contains no data
+#1059727-> Background
+#1059727-> Correlations -> Done
+#1059727-> Write statistics
+#1059727-> Write Statistics -> Done
+#1059727-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/rep_1/1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled~m6A_IP_1> => Done  time=11.538s
+#1059727-> clear Correlator
+#1059727-> ====== End ======
+#1067696-> ====== Start ====== deb=3
+#1067696-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#1067696->   in1=<1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled> in2=<m6A_IP_1> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/rep_1/1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled~m6A_IP_1>
+#1067696-> Foreground
+#1067696-> 
+Local Correlations contains no data
+#1067696-> Background
+#1067696-> Correlations -> Done
+#1067696-> Write statistics
+#1067696-> Write Statistics -> Done
+#1067696-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/TAU_m6a_IN/rep_1/1328_MAPTKD_WTTau_3XFLAG_IP_1.scaled~m6A_IP_1> => Done  time=11.474s
+#1067696-> clear Correlator
+#1067696-> ====== End ======

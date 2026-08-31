@@ -1,0 +1,280 @@
+#391043-> ====== Start ====== deb=3
+#391043-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#391043->   in1=<ADARp110_IP_1.scaled.plus> in2=<ADARp150_IP_1.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_1/ADARp110_IP_1.scaled.plus~ADARp150_IP_1.scaled.plus>
+#391043-> Foreground
+#391043-> Background
+#391043-> Correlations -> Done
+#391043-> Write statistics
+#391043-> Write Statistics -> Done
+#391043-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_1/ADARp110_IP_1.scaled.plus~ADARp150_IP_1.scaled.plus> => Done  time=7.791s
+#391043-> clear Correlator
+#391043-> ====== End ======
+#391085-> ====== Start ====== deb=3
+#391085-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#391085->   in1=<ADARp110_IP_1.scaled.plus> in2=<ADARp150_IP_1.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_1/ADARp110_IP_1.scaled.plus~ADARp150_IP_1.scaled.plus>
+#391085-> Foreground
+#391085-> Background
+#391085-> Correlations -> Done
+#391085-> Write statistics
+#391085-> Write Statistics -> Done
+#391085-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_1/ADARp110_IP_1.scaled.plus~ADARp150_IP_1.scaled.plus> => Done  time=7.643s
+#391085-> clear Correlator
+#391085-> ====== End ======
+#391098-> ====== Start ====== deb=3
+#391098-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/profiles/ADARp110_IP_2.scaled.plus.bprof > does not exist. Preparing binary track
+#391098->     Make binary track <ADARp110_IP_2.scaled.plus>
+#391098-> File <ADARp110_IP_2.scaled.plus.bedGraph> line #10745268: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#391098->     Make binary track -> OK. Time=5.505s
+#391098-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/profiles/ADARp150_IP_2.scaled.plus.bprof > does not exist. Preparing binary track
+#391098->     Make binary track <ADARp150_IP_2.scaled.plus>
+#391098-> File <ADARp150_IP_2.scaled.plus.bedGraph> line #10946474: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#391098->     Make binary track -> OK. Time=5.209s
+#391098-> Preparation 2 tracks: Time=10.746s
+#391098-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#391098->   in1=<ADARp110_IP_2.scaled.plus> in2=<ADARp150_IP_2.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_2/ADARp110_IP_2.scaled.plus~ADARp150_IP_2.scaled.plus>
+#391098-> Foreground
+#391098-> Background
+#391098-> Correlations -> Done
+#391098-> Write statistics
+#391098-> Write Statistics -> Done
+#391098-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_2/ADARp110_IP_2.scaled.plus~ADARp150_IP_2.scaled.plus> => Done  time=7.854s
+#391098-> clear Correlator
+#391098-> ====== End ======
+#391137-> ====== Start ====== deb=3
+#391137-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/profiles/ADARp110_IP_1.scaled.minus.bprof > does not exist. Preparing binary track
+#391137->     Make binary track <ADARp110_IP_1.scaled.minus>
+#391137-> File <ADARp110_IP_1.scaled.minus.bedGraph> line #13495163: incorrect segment end: chrom=chrM  end=16569.  Ignored
+#391137->     Make binary track -> OK. Time=4.808s
+#391137-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/profiles/ADARp150_IP_1.scaled.minus.bprof > does not exist. Preparing binary track
+#391137->     Make binary track <ADARp150_IP_1.scaled.minus>
+#391137->     Make binary track -> OK. Time=5.65s
+#391137-> Preparation 2 tracks: Time=9.912s
+#391137-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#391137->   in1=<ADARp110_IP_1.scaled.minus> in2=<ADARp150_IP_1.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_1/ADARp110_IP_1.scaled.minus~ADARp150_IP_1.scaled.minus>
+#391137-> Foreground
+#391137-> Background
+#391137-> Correlations -> Done
+#391137-> Write statistics
+#391137-> Write Statistics -> Done
+#391137-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_1/ADARp110_IP_1.scaled.minus~ADARp150_IP_1.scaled.minus> => Done  time=7.709s
+#391137-> clear Correlator
+#391137-> ====== End ======
+#391168-> ====== Start ====== deb=3
+#391168-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/profiles/ADARp110_IP_2.scaled.minus.bprof > does not exist. Preparing binary track
+#391168->     Make binary track <ADARp110_IP_2.scaled.minus>
+#391168-> File <ADARp110_IP_2.scaled.minus.bedGraph> line #14810290: incorrect segment end: chrom=chrM  end=16569.  Ignored
+#391168->     Make binary track -> OK. Time=5.185s
+#391168-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/profiles/ADARp150_IP_2.scaled.minus.bprof > does not exist. Preparing binary track
+#391168->     Make binary track <ADARp150_IP_2.scaled.minus>
+#391168->     Make binary track -> OK. Time=5.711s
+#391168-> Preparation 2 tracks: Time=10.914s
+#391168-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#391168->   in1=<ADARp110_IP_2.scaled.minus> in2=<ADARp150_IP_2.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_2/ADARp110_IP_2.scaled.minus~ADARp150_IP_2.scaled.minus>
+#391168-> Foreground
+#391168-> Background
+#391168-> Correlations -> Done
+#391168-> Write statistics
+#391168-> Write Statistics -> Done
+#391168-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_2/ADARp110_IP_2.scaled.minus~ADARp150_IP_2.scaled.minus> => Done  time=7.828s
+#391168-> clear Correlator
+#391168-> ====== End ======
+#395039-> ====== Start ====== deb=3
+#395039-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/profiles/ADARp110_IN_1.scaled.plus.bprof > does not exist. Preparing binary track
+#395039->     Make binary track <ADARp110_IN_1.scaled.plus>
+#395039-> File <ADARp110_IN_1.scaled.plus.bedGraph> line #5149843: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#395039->     Make binary track -> OK. Time=3.412s
+#395039-> Preparation 1 tracks: Time=3.473s
+#395039-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395039->   in1=<ADARp110_IP_1.scaled.plus> in2=<ADARp150_IP_1.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_1/ADARp110_IP_1.scaled.plus~ADARp150_IP_1.scaled.plus>
+#395039-> Foreground
+#395039-> Background
+#395039-> Correlations -> Done
+#395039-> Write statistics
+#395039-> Write Statistics -> Done
+#395039-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_1/ADARp110_IP_1.scaled.plus~ADARp150_IP_1.scaled.plus> => Done  time=8.689s
+#395039-> clear Correlator
+#395039-> ====== End ======
+#395072-> ====== Start ====== deb=3
+#395072-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/profiles/ADARp110_IN_2.scaled.plus.bprof > does not exist. Preparing binary track
+#395072->     Make binary track <ADARp110_IN_2.scaled.plus>
+#395072-> File <ADARp110_IN_2.scaled.plus.bedGraph> line #3945060: incorrect segment end: chrom=chr17_GL000205v2_random  end=185591.  Ignored
+#395072->     Make binary track -> OK. Time=3.501s
+#395072-> Preparation 1 tracks: Time=3.598s
+#395072-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395072->   in1=<ADARp110_IP_2.scaled.plus> in2=<ADARp150_IP_2.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_2/ADARp110_IP_2.scaled.plus~ADARp150_IP_2.scaled.plus>
+#395072-> Foreground
+#395072-> Background
+#395072-> Correlations -> Done
+#395072-> Write statistics
+#395072-> Write Statistics -> Done
+#395072-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_2/ADARp110_IP_2.scaled.plus~ADARp150_IP_2.scaled.plus> => Done  time=8.295s
+#395072-> clear Correlator
+#395072-> ====== End ======
+#395086-> ====== Start ====== deb=3
+#395086-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/profiles/ADARp110_IN_1.scaled.minus.bprof > does not exist. Preparing binary track
+#395086->     Make binary track <ADARp110_IN_1.scaled.minus>
+#395086->     Make binary track -> OK. Time=2.991s
+#395086-> Preparation 1 tracks: Time=3.43s
+#395086-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395086->   in1=<ADARp110_IP_1.scaled.minus> in2=<ADARp150_IP_1.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_1/ADARp110_IP_1.scaled.minus~ADARp150_IP_1.scaled.minus>
+#395086-> Foreground
+#395086-> Background
+#395086-> Correlations -> Done
+#395086-> Write statistics
+#395086-> Write Statistics -> Done
+#395086-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_1/ADARp110_IP_1.scaled.minus~ADARp150_IP_1.scaled.minus> => Done  time=8.124s
+#395086-> clear Correlator
+#395086-> ====== End ======
+#395102-> ====== Start ====== deb=3
+#395102-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/profiles/ADARp110_IN_2.scaled.minus.bprof > does not exist. Preparing binary track
+#395102->     Make binary track <ADARp110_IN_2.scaled.minus>
+#395102-> File <ADARp110_IN_2.scaled.minus.bedGraph> line #8196980: incorrect segment end: chrom=chrM  end=16569.  Ignored
+#395102->     Make binary track -> OK. Time=3.303s
+#395102-> Preparation 1 tracks: Time=3.397s
+#395102-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395102->   in1=<ADARp110_IP_2.scaled.minus> in2=<ADARp150_IP_2.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_2/ADARp110_IP_2.scaled.minus~ADARp150_IP_2.scaled.minus>
+#395102-> Foreground
+#395102-> Background
+#395102-> Correlations -> Done
+#395102-> Write statistics
+#395102-> Write Statistics -> Done
+#395102-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_2/ADARp110_IP_2.scaled.minus~ADARp150_IP_2.scaled.minus> => Done  time=8.264s
+#395102-> clear Correlator
+#395102-> ====== End ======
+#395277-> ====== Start ====== deb=3
+#395277-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp110_IP_1.scaled.plus.bprof > does not exist. Preparing binary track
+#395277->     Make binary track <ADARp110_IP_1.scaled.plus>
+#395277-> File <ADARp110_IP_1.scaled.plus.bedGraph> line #9806377: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#395277->     Make binary track -> OK. Time=5.356s
+#395277-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp150_IP_1.scaled.plus.bprof > does not exist. Preparing binary track
+#395277->     Make binary track <ADARp150_IP_1.scaled.plus>
+#395277-> File <ADARp150_IP_1.scaled.plus.bedGraph> line #10618142: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#395277->     Make binary track -> OK. Time=5.847s
+#395277-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp110_IN_1.scaled.plus.bprof > does not exist. Preparing binary track
+#395277->     Make binary track <ADARp110_IN_1.scaled.plus>
+#395277-> File <ADARp110_IN_1.scaled.plus.bedGraph> line #5149843: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#395277->     Make binary track -> OK. Time=2.803s
+#395277-> Preparation 3 tracks: Time=14.61s
+#395277-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395277->   in1=<ADARp110_IP_1.scaled.plus> in2=<ADARp150_IP_1.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/plus_1/ADARp110_IP_1.scaled.plus~ADARp150_IP_1.scaled.plus>
+#395277-> Foreground
+#395277-> Background
+#395277-> Correlations -> Done
+#395277-> Write statistics
+#395277-> Write Statistics -> Done
+#395277-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/plus_1/ADARp110_IP_1.scaled.plus~ADARp150_IP_1.scaled.plus> => Done  time=8.208s
+#395277-> clear Correlator
+#395277-> ====== End ======
+#395322-> ====== Start ====== deb=3
+#395322-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp110_IP_2.scaled.plus.bprof > does not exist. Preparing binary track
+#395322->     Make binary track <ADARp110_IP_2.scaled.plus>
+#395322-> File <ADARp110_IP_2.scaled.plus.bedGraph> line #10745268: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#395322->     Make binary track -> OK. Time=5.75s
+#395322-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp150_IP_2.scaled.plus.bprof > does not exist. Preparing binary track
+#395322->     Make binary track <ADARp150_IP_2.scaled.plus>
+#395322-> File <ADARp150_IP_2.scaled.plus.bedGraph> line #10946474: incorrect segment end: chrom=chr22_KI270733v1_random  end=179772.  Ignored
+#395322->     Make binary track -> OK. Time=5.764s
+#395322-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp110_IN_2.scaled.plus.bprof > does not exist. Preparing binary track
+#395322->     Make binary track <ADARp110_IN_2.scaled.plus>
+#395322-> File <ADARp110_IN_2.scaled.plus.bedGraph> line #3945060: incorrect segment end: chrom=chr17_GL000205v2_random  end=185591.  Ignored
+#395322->     Make binary track -> OK. Time=3.26s
+#395322-> Preparation 3 tracks: Time=13.933s
+#395322-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395322->   in1=<ADARp110_IP_2.scaled.plus> in2=<ADARp150_IP_2.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/plus_2/ADARp110_IP_2.scaled.plus~ADARp150_IP_2.scaled.plus>
+#395322-> Foreground
+#395322-> Background
+#395322-> Correlations -> Done
+#395322-> Write statistics
+#395322-> Write Statistics -> Done
+#395322-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/plus_2/ADARp110_IP_2.scaled.plus~ADARp150_IP_2.scaled.plus> => Done  time=8.321s
+#395322-> clear Correlator
+#395322-> ====== End ======
+#395350-> ====== Start ====== deb=3
+#395350-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp110_IP_1.scaled.minus.bprof > does not exist. Preparing binary track
+#395350->     Make binary track <ADARp110_IP_1.scaled.minus>
+#395350-> File <ADARp110_IP_1.scaled.minus.bedGraph> line #13495163: incorrect segment end: chrom=chrM  end=16569.  Ignored
+#395350->     Make binary track -> OK. Time=4.422s
+#395350-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp150_IP_1.scaled.minus.bprof > does not exist. Preparing binary track
+#395350->     Make binary track <ADARp150_IP_1.scaled.minus>
+#395350->     Make binary track -> OK. Time=4.668s
+#395350-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp110_IN_1.scaled.minus.bprof > does not exist. Preparing binary track
+#395350->     Make binary track <ADARp110_IN_1.scaled.minus>
+#395350->     Make binary track -> OK. Time=2.669s
+#395350-> Preparation 3 tracks: Time=11.799s
+#395350-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395350->   in1=<ADARp110_IP_1.scaled.minus> in2=<ADARp150_IP_1.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/minus_1/ADARp110_IP_1.scaled.minus~ADARp150_IP_1.scaled.minus>
+#395350-> Foreground
+#395350-> Background
+#395350-> Correlations -> Done
+#395350-> Write statistics
+#395350-> Write Statistics -> Done
+#395350-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/minus_1/ADARp110_IP_1.scaled.minus~ADARp150_IP_1.scaled.minus> => Done  time=8.63s
+#395350-> clear Correlator
+#395350-> ====== End ======
+#395381-> ====== Start ====== deb=3
+#395381-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp110_IP_2.scaled.minus.bprof > does not exist. Preparing binary track
+#395381->     Make binary track <ADARp110_IP_2.scaled.minus>
+#395381-> File <ADARp110_IP_2.scaled.minus.bedGraph> line #14810290: incorrect segment end: chrom=chrM  end=16569.  Ignored
+#395381->     Make binary track -> OK. Time=4.786s
+#395381-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp150_IP_2.scaled.minus.bprof > does not exist. Preparing binary track
+#395381->     Make binary track <ADARp150_IP_2.scaled.minus>
+#395381->     Make binary track -> OK. Time=4.809s
+#395381-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/profiles/ADARp110_IN_2.scaled.minus.bprof > does not exist. Preparing binary track
+#395381->     Make binary track <ADARp110_IN_2.scaled.minus>
+#395381-> File <ADARp110_IN_2.scaled.minus.bedGraph> line #8196980: incorrect segment end: chrom=chrM  end=16569.  Ignored
+#395381->     Make binary track -> OK. Time=2.872s
+#395381-> Preparation 3 tracks: Time=12.524s
+#395381-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395381->   in1=<ADARp110_IP_2.scaled.minus> in2=<ADARp150_IP_2.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/minus_2/ADARp110_IP_2.scaled.minus~ADARp150_IP_2.scaled.minus>
+#395381-> Foreground
+#395381-> Background
+#395381-> Correlations -> Done
+#395381-> Write statistics
+#395381-> Write Statistics -> Done
+#395381-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs_IN/minus_2/ADARp110_IP_2.scaled.minus~ADARp150_IP_2.scaled.minus> => Done  time=8.210s
+#395381-> clear Correlator
+#395381-> ====== End ======
+#395584-> ====== Start ====== deb=3
+#395584-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395584->   in1=<ADARp110_IP_1.scaled.plus> in2=<ADARp150_IP_1.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_1/ADARp110_IP_1.scaled.plus~ADARp150_IP_1.scaled.plus>
+#395584-> Foreground
+#395584-> Background
+#395584-> Correlations -> Done
+#395584-> Write statistics
+#395584-> Write Statistics -> Done
+#395584-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_1/ADARp110_IP_1.scaled.plus~ADARp150_IP_1.scaled.plus> => Done  time=7.653s
+#395584-> clear Correlator
+#395584-> ====== End ======
+#395599-> ====== Start ====== deb=3
+#395599-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395599->   in1=<ADARp110_IP_2.scaled.plus> in2=<ADARp150_IP_2.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_2/ADARp110_IP_2.scaled.plus~ADARp150_IP_2.scaled.plus>
+#395599-> Foreground
+#395599-> Background
+#395599-> Correlations -> Done
+#395599-> Write statistics
+#395599-> Write Statistics -> Done
+#395599-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/plus_2/ADARp110_IP_2.scaled.plus~ADARp150_IP_2.scaled.plus> => Done  time=7.811s
+#395599-> clear Correlator
+#395599-> ====== End ======
+#395614-> ====== Start ====== deb=3
+#395614-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395614->   in1=<ADARp110_IP_1.scaled.minus> in2=<ADARp150_IP_1.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_1/ADARp110_IP_1.scaled.minus~ADARp150_IP_1.scaled.minus>
+#395614-> Foreground
+#395614-> Background
+#395614-> Correlations -> Done
+#395614-> Write statistics
+#395614-> Write Statistics -> Done
+#395614-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_1/ADARp110_IP_1.scaled.minus~ADARp150_IP_1.scaled.minus> => Done  time=7.592s
+#395614-> clear Correlator
+#395614-> ====== End ======
+#395633-> ====== Start ====== deb=3
+#395633-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#395633->   in1=<ADARp110_IP_2.scaled.minus> in2=<ADARp150_IP_2.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_2/ADARp110_IP_2.scaled.minus~ADARp150_IP_2.scaled.minus>
+#395633-> Foreground
+#395633-> Background
+#395633-> Correlations -> Done
+#395633-> Write statistics
+#395633-> Write Statistics -> Done
+#395633-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/ADARs/minus_2/ADARp110_IP_2.scaled.minus~ADARp150_IP_2.scaled.minus> => Done  time=7.743s
+#395633-> clear Correlator
+#395633-> ====== End ======

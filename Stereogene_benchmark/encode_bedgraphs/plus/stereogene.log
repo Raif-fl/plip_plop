@@ -1,0 +1,187 @@
+#393078-> ====== Start ====== deb=3
+#393078-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/profiles/SLBP_K562_ENCSR483NOP_IP_1.scaled.plus.bprof > does not exist. Preparing binary track
+#393078->     Make binary track <SLBP_K562_ENCSR483NOP_IP_1.scaled.plus>
+#393078->     Make binary track -> OK. Time=0.953s
+#393078-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/profiles/HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus.bprof > does not exist. Preparing binary track
+#393078->     Make binary track <HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus>
+#393078->     Make binary track -> OK. Time=2.606s
+#393078-> Preparation 2 tracks: Time=3.590s
+#393078-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#393078->   in1=<SLBP_K562_ENCSR483NOP_IP_1.scaled.plus> in2=<HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/plus_1/SLBP_K562_ENCSR483NOP_IP_1.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus>
+#393078-> Foreground
+#393078-> Background
+#393078-> Correlations -> Done
+#393078-> Write statistics
+#393078-> Write Statistics -> Done
+#393078-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/plus_1/SLBP_K562_ENCSR483NOP_IP_1.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus> => Done  time=6.174s
+#393078-> clear Correlator
+#393078-> ====== End ======
+#393092-> ====== Start ====== deb=3
+#393092-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/profiles/SLBP_K562_ENCSR483NOP_IP_2.scaled.plus.bprof > does not exist. Preparing binary track
+#393092->     Make binary track <SLBP_K562_ENCSR483NOP_IP_2.scaled.plus>
+#393092->     Make binary track -> OK. Time=0.978s
+#393092-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/profiles/HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus.bprof > does not exist. Preparing binary track
+#393092->     Make binary track <HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus>
+#393092->     Make binary track -> OK. Time=6.24s
+#393092-> Preparation 2 tracks: Time=7.24s
+#393092-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#393092->   in1=<SLBP_K562_ENCSR483NOP_IP_2.scaled.plus> in2=<HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/plus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus>
+#393092-> Foreground
+#393092-> Background
+#393092-> Correlations -> Done
+#393092-> Write statistics
+#393092-> Write Statistics -> Done
+#393092-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/plus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus> => Done  time=6.250s
+#393092-> clear Correlator
+#393092-> ====== End ======
+#393113-> ====== Start ====== deb=3
+#393113-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/profiles/SLBP_K562_ENCSR483NOP_IP_2.scaled.minus.bprof > does not exist. Preparing binary track
+#393113->     Make binary track <SLBP_K562_ENCSR483NOP_IP_2.scaled.minus>
+#393113->     Make binary track -> OK. Time=0.808s
+#393113-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/profiles/HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus.bprof > does not exist. Preparing binary track
+#393113->     Make binary track <HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus>
+#393113-> File <HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus.bedGraph> line #8021015: incorrect segment end: chrom=chr1_KI270712v1_random  end=176043.  Ignored
+#393113->     Make binary track -> OK. Time=5.756s
+#393113-> Preparation 2 tracks: Time=6.586s
+#393113-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#393113->   in1=<SLBP_K562_ENCSR483NOP_IP_2.scaled.minus> in2=<HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/minus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.minus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus>
+#393113-> Foreground
+#393113-> Background
+#393113-> Correlations -> Done
+#393113-> Write statistics
+#393113-> Write Statistics -> Done
+#393113-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/minus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.minus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus> => Done  time=6.65s
+#393113-> clear Correlator
+#393113-> ====== End ======
+#393459-> ====== Start ====== deb=3
+#393459-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#393459->   in1=<SLBP_K562_ENCSR483NOP_IP_1.scaled.plus> in2=<HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/plus_1/SLBP_K562_ENCSR483NOP_IP_1.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus>
+#393459-> Foreground
+#393459-> Background
+#393459-> Correlations -> Done
+#393459-> Write statistics
+#393459-> Write Statistics -> Done
+#393459-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/plus_1/SLBP_K562_ENCSR483NOP_IP_1.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus> => Done  time=5.819s
+#393459-> clear Correlator
+#393459-> ====== End ======
+#393471-> ====== Start ====== deb=3
+#393471-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#393471->   in1=<SLBP_K562_ENCSR483NOP_IP_2.scaled.plus> in2=<HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/plus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus>
+#393471-> Foreground
+#393471-> Background
+#393471-> Correlations -> Done
+#393471-> Write statistics
+#393471-> Write Statistics -> Done
+#393471-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/plus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus> => Done  time=5.965s
+#393471-> clear Correlator
+#393471-> ====== End ======
+#393492-> ====== Start ====== deb=3
+#393492-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/profiles/SLBP_K562_ENCSR483NOP_IP_1.scaled.minus.bprof > does not exist. Preparing binary track
+#393492->     Make binary track <SLBP_K562_ENCSR483NOP_IP_1.scaled.minus>
+#393492->     Make binary track -> OK. Time=0.675s
+#393492-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/profiles/HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus.bprof > does not exist. Preparing binary track
+#393492->     Make binary track <HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus>
+#393492-> File <HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus.bedGraph> line #5178615: incorrect segment end: chrom=chrUn_KI270466v1  end=1233.  Ignored
+#393492->     Make binary track -> OK. Time=2.307s
+#393492-> Preparation 2 tracks: Time=3.4s
+#393492-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#393492->   in1=<SLBP_K562_ENCSR483NOP_IP_1.scaled.minus> in2=<HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/minus_1/SLBP_K562_ENCSR483NOP_IP_1.scaled.minus~HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus>
+#393492-> Foreground
+#393492-> Background
+#393492-> Correlations -> Done
+#393492-> Write statistics
+#393492-> Write Statistics -> Done
+#393492-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/minus_1/SLBP_K562_ENCSR483NOP_IP_1.scaled.minus~HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus> => Done  time=5.922s
+#393492-> clear Correlator
+#393492-> ====== End ======
+#393514-> ====== Start ====== deb=3
+#393514-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#393514->   in1=<SLBP_K562_ENCSR483NOP_IP_2.scaled.minus> in2=<HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/minus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.minus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus>
+#393514-> Foreground
+#393514-> Background
+#393514-> Correlations -> Done
+#393514-> Write statistics
+#393514-> Write Statistics -> Done
+#393514-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC/minus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.minus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus> => Done  time=5.949s
+#393514-> clear Correlator
+#393514-> ====== End ======
+#396046-> ====== Start ====== deb=3
+#396046-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/profiles/SLBP_K562_ENCSR483NOP_IP_1.scaled.plus.bprof > does not exist. Preparing binary track
+#396046->     Make binary track <SLBP_K562_ENCSR483NOP_IP_1.scaled.plus>
+#396046->     Make binary track -> OK. Time=0.784s
+#396046-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/profiles/HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus.bprof > does not exist. Preparing binary track
+#396046->     Make binary track <HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus>
+#396046->     Make binary track -> OK. Time=2.203s
+#396046-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/profiles/SLBP_K562_ENCSR483NOP_IN_1.scaled.plus.bprof > does not exist. Preparing binary track
+#396046->     Make binary track <SLBP_K562_ENCSR483NOP_IN_1.scaled.plus>
+#396046->     Make binary track -> OK. Time=1.61s
+#396046-> Preparation 3 tracks: Time=4.105s
+#396046-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#396046->   in1=<SLBP_K562_ENCSR483NOP_IP_1.scaled.plus> in2=<HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/plus_1/SLBP_K562_ENCSR483NOP_IP_1.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus>
+#396046-> Foreground
+#396046-> Background
+#396046-> Correlations -> Done
+#396046-> Write statistics
+#396046-> Write Statistics -> Done
+#396046-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/plus_1/SLBP_K562_ENCSR483NOP_IP_1.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_1.scaled.plus> => Done  time=6.191s
+#396046-> clear Correlator
+#396046-> ====== End ======
+#396060-> ====== Start ====== deb=3
+#396060-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/profiles/SLBP_K562_ENCSR483NOP_IP_2.scaled.plus.bprof > does not exist. Preparing binary track
+#396060->     Make binary track <SLBP_K562_ENCSR483NOP_IP_2.scaled.plus>
+#396060->     Make binary track -> OK. Time=0.730s
+#396060-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/profiles/HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus.bprof > does not exist. Preparing binary track
+#396060->     Make binary track <HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus>
+#396060->     Make binary track -> OK. Time=5.369s
+#396060-> Preparation 2 tracks: Time=6.159s
+#396060-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#396060->   in1=<SLBP_K562_ENCSR483NOP_IP_2.scaled.plus> in2=<HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/plus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus>
+#396060-> Foreground
+#396060-> Background
+#396060-> Correlations -> Done
+#396060-> Write statistics
+#396060-> Write Statistics -> Done
+#396060-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/plus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.plus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.plus> => Done  time=6.444s
+#396060-> clear Correlator
+#396060-> ====== End ======
+#396203-> ====== Start ====== deb=3
+#396203-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/profiles/SLBP_K562_ENCSR483NOP_IP_1.scaled.minus.bprof > does not exist. Preparing binary track
+#396203->     Make binary track <SLBP_K562_ENCSR483NOP_IP_1.scaled.minus>
+#396203->     Make binary track -> OK. Time=0.682s
+#396203-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/profiles/HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus.bprof > does not exist. Preparing binary track
+#396203->     Make binary track <HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus>
+#396203-> File <HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus.bedGraph> line #5178615: incorrect segment end: chrom=chrUn_KI270466v1  end=1233.  Ignored
+#396203->     Make binary track -> OK. Time=2.71s
+#396203-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/profiles/SLBP_K562_ENCSR483NOP_IN_1.scaled.minus.bprof > does not exist. Preparing binary track
+#396203->     Make binary track <SLBP_K562_ENCSR483NOP_IN_1.scaled.minus>
+#396203->     Make binary track -> OK. Time=1.92s
+#396203-> Preparation 3 tracks: Time=3.897s
+#396203-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#396203->   in1=<SLBP_K562_ENCSR483NOP_IP_1.scaled.minus> in2=<HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/minus_1/SLBP_K562_ENCSR483NOP_IP_1.scaled.minus~HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus>
+#396203-> Foreground
+#396203-> Background
+#396203-> Correlations -> Done
+#396203-> Write statistics
+#396203-> Write Statistics -> Done
+#396203-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/minus_1/SLBP_K562_ENCSR483NOP_IP_1.scaled.minus~HNRNPC_K562_ENCSR249ROI_IP_1.scaled.minus> => Done  time=6.159s
+#396203-> clear Correlator
+#396203-> ====== End ======
+#396217-> ====== Start ====== deb=3
+#396217-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/profiles/SLBP_K562_ENCSR483NOP_IP_2.scaled.minus.bprof > does not exist. Preparing binary track
+#396217->     Make binary track <SLBP_K562_ENCSR483NOP_IP_2.scaled.minus>
+#396217->     Make binary track -> OK. Time=0.762s
+#396217-> file < /tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/profiles/HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus.bprof > does not exist. Preparing binary track
+#396217->     Make binary track <HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus>
+#396217-> File <HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus.bedGraph> line #8021015: incorrect segment end: chrom=chr1_KI270712v1_random  end=176043.  Ignored
+#396217->     Make binary track -> OK. Time=5.218s
+#396217-> Preparation 2 tracks: Time=6.17s
+#396217-> Correlations:   wSize=300000   kernelType="N"   kernelSigma=1000
+#396217->   in1=<SLBP_K562_ENCSR483NOP_IP_2.scaled.minus> in2=<HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus> out=</tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/minus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.minus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus>
+#396217-> Foreground
+#396217-> Background
+#396217-> Correlations -> Done
+#396217-> Write statistics
+#396217-> Write Statistics -> Done
+#396217-> </tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/Stereogene_results/SLBP_HNRNPC_IN/minus_2/SLBP_K562_ENCSR483NOP_IP_2.scaled.minus~HNRNPC_K562_ENCSR249ROI_IP_2.scaled.minus> => Done  time=6.398s
+#396217-> clear Correlator
+#396217-> ====== End ======
