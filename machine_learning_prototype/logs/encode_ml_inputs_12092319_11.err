@@ -1,0 +1,12 @@
+[urlOpen] Couldn't open /tscc/projects/ps-yeolab5/rbp-portal/encode3/eclip/Skipper/2.0.0/v1/output/secondary_results/bigwigs/scaled/plus/DROSHA_HepG2_ENCSR834YLD_IN_2.scaled.plus.bw for reading
+[urlOpen] Couldn't open /tscc/projects/ps-yeolab5/rbp-portal/encode3/eclip/Skipper/2.0.0/v1/output/secondary_results/bigwigs/scaled/plus/DROSHA_HepG2_ENCSR834YLD_IN_2.scaled.plus.bw for reading
+[pyBwOpen] bw is NULL!
+Traceback (most recent call last):
+  File "/tscc/nfs/home/kflanagan/projects/plip_plop/machine_learning_prototype/prepare_inputs.py", line 241, in <module>
+    signal_A = extract_bigwig_signal(
+        args.plus_A, args.minus_A, args.plus_IN_A, args.minus_IN_A, regions
+    )
+  File "/tscc/nfs/home/kflanagan/projects/plip_plop/machine_learning_prototype/prepare_inputs.py", line 100, in extract_bigwig_signal
+    plus_in_bws = [pyBigWig.open(f) for f in plus_in_bigwigs]
+                   ~~~~~~~~~~~~~^^^
+RuntimeError: Received an error during file opening!

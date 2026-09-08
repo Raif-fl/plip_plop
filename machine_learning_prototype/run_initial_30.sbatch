@@ -18,10 +18,10 @@ echo "Starting task: ${SLURM_ARRAY_TASK_ID}"
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate DIBS
 
-SCRIPT="/tscc/nfs/home/kflanagan/projects/RNA_protein_grammar/machine_learning_prototype/prepare_inputs.py"
-COMPARISONS="/tscc/nfs/home/kflanagan/projects/RNA_protein_grammar/machine_learning_prototype/encode_initial_30_comparisons.tsv"
+SCRIPT="/tscc/nfs/home/kflanagan/projects/plip_plop/machine_learning_prototype/prepare_inputs.py"
+COMPARISONS="/tscc/nfs/home/kflanagan/projects/plip_plop/machine_learning_prototype/encode_initial_30_comparisons.tsv"
 
-OUTDIR="/tscc/lustre/ddn/scratch/kflanagan/RNA_protein_grammar/ml_inputs"
+OUTDIR="/tscc/lustre/ddn/scratch/kflanagan/plip_plop_results/ml_inputs"
 
 mkdir -p logs
 mkdir -p "$OUTDIR"
@@ -36,27 +36,32 @@ IFS=$'\t' read -r \
     plus_2_A \
     minus_1_A \
     minus_2_A \
+    plus_IN_A \
+    minus_IN_A \
     plus_1_B \
     plus_2_B \
     minus_1_B \
     minus_2_B \
+    plus_IN_B \
+    minus_IN_B \
     window_A \
     window_B <<< "$ROW"
 
-
 echo "Processing ${experiment_A} vs ${experiment_B}"
-
 
 python "$SCRIPT" \
     --window_A "$window_A" \
     --window_B "$window_B" \
     --plus_A "$plus_1_A" "$plus_2_A" \
     --minus_A "$minus_1_A" "$minus_2_A" \
+    --plus_IN_A "$plus_IN_A" \
+    --minus_IN_A "$minus_IN_A" \
     --plus_B "$plus_1_B" "$plus_2_B" \
     --minus_B "$minus_1_B" "$minus_2_B" \
+    --plus_IN_B "$plus_IN_B" \
+    --minus_IN_B "$minus_IN_B" \
     --output "$OUTDIR/${experiment_A}_${experiment_B}.npz" \
     --rbp_A "$experiment_A" \
     --rbp_B "$experiment_B"
-
 
 echo "Finished task: ${SLURM_ARRAY_TASK_ID}"

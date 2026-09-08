@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-# Import necessary packages. 
+# Import necessary packages.
+
 import argparse
 import numpy as np
 import pandas as pd
@@ -92,65 +93,7 @@ def load_regions(window_files, buffer=100, block_size=300):
 
     return(pd.DataFrame(blocks))
 
-
-def extract_bigwig_signal(plus_bigwigs, minus_bigwigs, regions):
-    plus_bws = [pyBigWig.open(f) for f in plus_bigwigs]
-    minus_bws = [pyBigWig.open(f) for f in minus_bigwigs]
-
-    extracted = []
-
-    for row in regions.itertuples(index=False):
-
-        if row.strand == "+":
-            bws = plus_bws
-        elif row.strand == "-":
-            bws = minus_bws
-        else:
-            continue
-
-        if not all(row.chr in bw.chroms() for bw in bws):
-            continue
-
-        chrom_size = min(bw.chroms(row.chr) for bw in bws)
-
-        start = max(0, row.start_buffered)
-        end = min(row.end_buffered, chrom_size)
-
-        replicate_values = []
-
-        for bw in bws:
-            values = bw.values(row.chr, start, end, numpy=True)
-
-            # Convert missing bigWig values to zero.
-            values = np.nan_to_num(values, nan=0.0)
-
-            replicate_values.append(values)
-
-        # Average biological replicates.
-        values = np.mean(replicate_values, axis=0)
-
-        # Orient minus strand windows in 5' -> 3' direction.
-        if row.strand == "-":
-            values = values[::-1]
-
-        extracted.append({
-            "chr": row.chr,
-            "start": start,
-            "end": end,
-            "strand": row.strand,
-            "region_id": row.region_id,
-            "block_number": row.block_number,
-            "signal": values
-        })
-
-    for bw in plus_bws + minus_bws:
-        bw.close()
-
-    return(extracted)
-
-
 def save_pair_dataset(signal_A, signal_B, output_file, rbp_A, rbp_B, cell_type):
-
     if len(signal_A) != len(signal_B):
         raise ValueError("RBP A and RBP B contain different numbers of blocks.")
 
@@ -180,36 +123,126 @@ def save_pair_dataset(signal_A, signal_B, output_file, rbp_A, rbp_B, cell_type):
 
 
 def infer_cell_type(experiment):
-    if "_HepG2_" in experiment:
+    if "HepG2" in experiment:
         return("HepG2")
-    elif "_K562_" in experiment:
+    elif "K562" in experiment:
         return("K562")
     else:
         return("unknown")
 
-# Set up argument parser. 
+def extract_bigwig_signal(plus_ip_bigwigs, minus_ip_bigwigs, plus_in_bigwigs, minus_in_bigwigs, regions):
+    plus_ip_bws = [pyBigWig.open(f) for f in plus_ip_bigwigs]
+    minus_ip_bws = [pyBigWig.open(f) for f in minus_ip_bigwigs]
+    plus_in_bws = [pyBigWig.open(f) for f in plus_in_bigwigs]
+    minus_in_bws = [pyBigWig.open(f) for f in minus_in_bigwigs]
+
+    extracted = []
+
+    for row in regions.itertuples(index=False):
+
+        if row.strand == "+":
+            ip_bws = plus_ip_bws
+            in_bws = plus_in_bws
+        elif row.strand == "-":
+            ip_bws = minus_ip_bws
+            in_bws = minus_in_bws
+        else:
+            continue
+
+        all_bws = ip_bws + in_bws
+
+        if not all(row.chr in bw.chroms() for bw in all_bws):
+            continue
+
+        chrom_size = min(bw.chroms(row.chr) for bw in all_bws)
+
+        start = max(0, row.start_buffered)
+        end = min(row.end_buffered, chrom_size)
+
+        ip_replicate_values = []
+        in_replicate_values = []
+
+        for bw in ip_bws:
+            values = bw.values(row.chr, start, end, numpy=True)
+            values = np.nan_to_num(values, nan=0.0)
+            ip_replicate_values.append(values)
+
+        for bw in in_bws:
+            values = bw.values(row.chr, start, end, numpy=True)
+            values = np.nan_to_num(values, nan=0.0)
+            in_replicate_values.append(values)
+
+        # Average IP and input replicates separately.
+        ip_values = np.mean(ip_replicate_values, axis=0)
+        in_values = np.mean(in_replicate_values, axis=0)
+
+        # Calculate input-corrected signal.
+        values = np.log1p(ip_values) - np.log1p(in_values)
+
+        # Orient minus strand windows in 5' -> 3' direction.
+        if row.strand == "-":
+            values = values[::-1]
+
+        extracted.append({
+            "chr": row.chr,
+            "start": start,
+            "end": end,
+            "strand": row.strand,
+            "region_id": row.region_id,
+            "block_number": row.block_number,
+            "signal": values
+        })
+
+    for bw in plus_ip_bws + minus_ip_bws + plus_in_bws + minus_in_bws:
+        bw.close()
+
+    return(extracted)
+
+
+# Set up argument parser.
+
 parser = argparse.ArgumentParser()
 
-# Add all arguments to parser. 
+# Add all arguments to parser.
+
 parser.add_argument("--window_A", required=True)
 parser.add_argument("--window_B", required=True)
-parser.add_argument("--plus_A", nargs=2, required=True)
-parser.add_argument("--minus_A", nargs=2, required=True)
-parser.add_argument("--plus_B", nargs=2, required=True)
-parser.add_argument("--minus_B", nargs=2, required=True)
+
+parser.add_argument("--plus_A", nargs="+", required=True)
+parser.add_argument("--minus_A", nargs="+", required=True)
+parser.add_argument("--plus_IN_A", nargs="+", required=True)
+parser.add_argument("--minus_IN_A", nargs="+", required=True)
+
+parser.add_argument("--plus_B", nargs="+", required=True)
+parser.add_argument("--minus_B", nargs="+", required=True)
+parser.add_argument("--plus_IN_B", nargs="+", required=True)
+parser.add_argument("--minus_IN_B", nargs="+", required=True)
+
 parser.add_argument("--output", required=True)
 parser.add_argument("--rbp_A", required=True)
 parser.add_argument("--rbp_B", required=True)
 
-# Load arguments. 
+# Load arguments.
+
 args = parser.parse_args()
 
-# Extract regions. 
+# Extract regions.
+
 regions = load_regions([args.window_A, args.window_B], buffer=100, block_size=300)
 
-# Extract signal. 
-signal_A = extract_bigwig_signal(args.plus_A, args.minus_A, regions)
-signal_B = extract_bigwig_signal(args.plus_B, args.minus_B, regions)
+# Extract input-corrected signal.
 
-# Save output. 
-save_pair_dataset(signal_A, signal_B, args.output, args.rbp_A, args.rbp_B, infer_cell_type(args.rbp_A))
+signal_A = extract_bigwig_signal(
+    args.plus_A, args.minus_A, args.plus_IN_A, args.minus_IN_A, regions
+)
+
+signal_B = extract_bigwig_signal(
+    args.plus_B, args.minus_B, args.plus_IN_B, args.minus_IN_B, regions
+)
+
+# Save output.
+
+save_pair_dataset(
+    signal_A, signal_B, args.output, args.rbp_A, args.rbp_B,
+    infer_cell_type(args.rbp_A)
+)

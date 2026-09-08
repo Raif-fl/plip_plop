@@ -110,12 +110,16 @@ def build_validation_pca(model, val_loader, val_metadata, device):
     if len(latent_vectors) != len(val_metadata):
         raise ValueError("Latent vectors and validation metadata are not aligned.")
 
-    pca = PCA(n_components=2)
+    n_pcs = 10
+
+    pca = PCA(n_components=n_pcs)
     latent_pca = pca.fit_transform(latent_vectors)
 
     pca_df = val_metadata.reset_index(drop=True).copy()
-    pca_df["PC1"] = latent_pca[:, 0]
-    pca_df["PC2"] = latent_pca[:, 1]
+
+    for i in range(n_pcs):
+        pca_df[f"PC{i + 1}"] = latent_pca[:, i]
+
     pca_df["pair_label"] = pca_df["experiment_A"] + " vs " + pca_df["experiment_B"]
     pca_df["pair_key"] = [
         "__".join(sorted((a, b)))
@@ -159,7 +163,10 @@ def plot_validation_pca(pca_df, pca, categories=None, comparison_ids=None, pairs
 def plot_window_reconstruction(validation_signals, model, pca_df, idx):
     original = validation_signals[idx]
 
-    x = torch.tensor(original, dtype=torch.float32).unsqueeze(0).to(device)
+    # Use the model's device rather than the module-level default. This keeps
+    # analysis reproducible when a saved model is loaded on a different device.
+    model_device = next(model.parameters()).device
+    x = torch.tensor(original, dtype=torch.float32).unsqueeze(0).to(model_device)
 
     model.eval()
     with torch.no_grad():

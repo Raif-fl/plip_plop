@@ -1,2 +1,4 @@
 *.bedGraph
 stereogene/
+.ipynb_checkpoints/
+archive/
