@@ -5,6 +5,7 @@ import pandas as pd
 import pyBigWig
 import matplotlib.pyplot as plt
 import subprocess
+from scipy.ndimage import gaussian_filter1d
 
 def get_track_paths(row, strand, track_type, side):
     paths = []
@@ -273,20 +274,21 @@ def get_mapped_reads(bam_file):
 
     return(mapped_reads)
 
-def abundance_weighted_enrichment(ip, in_signal, alpha=0.01, pseudocount=1):
-    total_window_signal = (ip + in_signal).sum()
+def calculate_rpm_pseudocount(library_sizes):
+    library_sizes = np.atleast_1d(library_sizes).astype(float)
 
-    k = alpha * total_window_signal
+    return(np.mean(1e6 / library_sizes))
+
+def abundance_weighted_enrichment(ip, in_signal, ip_pseudocount, in_pseudocount, p=1):
+    mean_window_signal = (ip + in_signal).mean()
+    k = p * mean_window_signal
 
     log_enrichment = np.log(
-        (ip + pseudocount) /
-        (in_signal + pseudocount)
+        (ip + ip_pseudocount) /
+        (in_signal + in_pseudocount)
     )
 
-    abundance_weight = (
-        (ip + in_signal) /
-        (ip + in_signal + k)
-    )
+    abundance_weight = (ip + in_signal) / (ip + in_signal + k)
 
     return(log_enrichment * abundance_weight)
 
@@ -315,135 +317,7 @@ def plot_abundance_IN_window(window_data, window_id, experiment_A, experiment_B)
     plt.tight_layout()
     plt.show()
 
-def binomial_shrunken_enrichment(ip, in_signal, ip_library_size, in_library_size, pseudocount=0.5,
-                                 prior_scale=1.0,min_prior_variance=1e-6):
-    ip = np.asarray(ip, dtype=float)
-    in_signal = np.asarray(in_signal, dtype=float)
+def smooth_signal(signal, sigma=1):
+    signal = np.asarray(signal, dtype=float)
 
-    log_enrichment = (
-        np.log((ip + pseudocount) / (in_signal + pseudocount)) -
-        np.log(ip_library_size / in_library_size)
-    )
-
-    sampling_variance = (
-        1 / (ip + pseudocount) +
-        1 / (in_signal + pseudocount)
-    )
-
-    observed_variance = np.var(log_enrichment)
-    expected_sampling_variance = np.mean(sampling_variance)
-
-    prior_variance = max(
-        (observed_variance - expected_sampling_variance) * prior_scale,
-        min_prior_variance
-    )
-
-    shrinkage_factor = (
-        prior_variance /
-        (prior_variance + sampling_variance)
-    )
-
-    shrunken_enrichment = log_enrichment * shrinkage_factor
-
-    return(shrunken_enrichment, log_enrichment, shrinkage_factor, prior_variance)
-
-def plot_shrunken_IN_window(window_data, window_id, experiment_A, experiment_B):
-    window = window_data[window_id]
-
-    x = np.arange(len(window["shrunken_A"]))
-
-    fig, axes = plt.subplots(
-        1,
-        1,
-        figsize=(8, 3),
-        sharex=True
-    )
-
-    axes.plot(
-        x,
-        window["shrunken_A"],
-        label=experiment_A
-    )
-
-    axes.plot(
-        x,
-        window["shrunken_B"],
-        label=experiment_B
-    )
-
-    axes.axhline(0, linewidth=1)
-    axes.set_ylabel("Shrunken log enrichment")
-    axes.set_xlabel("Position within 300-nt window")
-    axes.legend()
-
-    fig.suptitle(
-        f"Window {window_id}: "
-        f"{window['chr']}:{window['start']}-{window['end']} "
-        f"({window['strand']})"
-    )
-
-    plt.tight_layout()
-    plt.show()
-
-def plot_shrinkage_window(window_data, window_id, experiment_A, experiment_B):
-    window = window_data[window_id]
-
-    x = np.arange(len(window["shrinkage_A"]))
-
-    fig, axes = plt.subplots(
-        1,
-        1,
-        figsize=(8, 3),
-        sharex=True
-    )
-
-    axes.plot(
-        x,
-        window["shrinkage_A"],
-        label=experiment_A
-    )
-
-    axes.plot(
-        x,
-        window["shrinkage_B"],
-        label=experiment_B
-    )
-
-    axes.set_ylabel("Shrinkage factor")
-    axes.set_xlabel("Position within 300-nt window")
-    axes.set_ylim(0, 1)
-    axes.legend()
-
-    fig.suptitle(
-        f"Window {window_id}: "
-        f"{window['chr']}:{window['start']}-{window['end']} "
-        f"({window['strand']})"
-    )
-
-    plt.tight_layout()
-    plt.show()
-
-def calculate_poisson_variance(ip, in_signal, pseudocount=0.5):
-    ip = np.asarray(ip, dtype=float)
-    in_signal = np.asarray(in_signal, dtype=float)
-
-    return(1 / (ip + pseudocount) + 1 / (in_signal + pseudocount))
-
-def calculate_shrunken_enrichment(log_enrichment, variance, tau2):
-    log_enrichment = np.asarray(log_enrichment, dtype=float)
-    variance = np.asarray(variance, dtype=float)
-
-    shrinkage = tau2 / (tau2 + variance)
-
-    return(log_enrichment * shrinkage)
-
-def calculate_log_enrichment(ip, in_signal, ip_library_size, in_library_size, pseudocount=0.5):
-    ip = np.asarray(ip, dtype=float)
-    in_signal = np.asarray(in_signal, dtype=float)
-
-    log_enrichment = (
-        np.log((ip + pseudocount) / (in_signal + pseudocount)) -
-        np.log(ip_library_size / in_library_size)
-    )
-
-    return(log_enrichment)
+    return(gaussian_filter1d(signal, sigma=sigma))

@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/tscc/nfs/home/kflanagan/projects/plip_plop/machine_learning_prototype/prepare_inputs.py", line 8, in <module>
-    import pyBigWig
-ModuleNotFoundError: No module named 'pyBigWig'
