@@ -280,7 +280,7 @@ def calculate_rpm_pseudocount(library_sizes):
     return(np.mean(1e6 / library_sizes))
 
 def abundance_weighted_enrichment(ip, in_signal, ip_pseudocount, in_pseudocount, p=1):
-    mean_window_signal = (ip + in_signal).mean()
+    mean_window_signal = (ip).mean()
     k = p * mean_window_signal
 
     log_enrichment = np.log(
@@ -288,7 +288,7 @@ def abundance_weighted_enrichment(ip, in_signal, ip_pseudocount, in_pseudocount,
         (in_signal + in_pseudocount)
     )
 
-    abundance_weight = (ip + in_signal) / (ip + in_signal + k)
+    abundance_weight = (ip) / (ip + k)
 
     return(log_enrichment * abundance_weight)
 
@@ -321,3 +321,24 @@ def smooth_signal(signal, sigma=1):
     signal = np.asarray(signal, dtype=float)
 
     return(gaussian_filter1d(signal, sigma=sigma))
+
+def plot_smoothed_window(window_data, window_id, experiment_A, experiment_B, sigma):
+    window = window_data[window_id]
+    x = np.arange(len(window["abundance_corrected_A"]))
+
+    fig, axes = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
+
+    axes[0].plot(x, window["abundance_corrected_A"], alpha=0.4, label="Unsmoothed")
+    axes[0].plot(x, window[f"smoothed_{sigma}_A"], label=f"σ = {sigma}")
+    axes[0].set_ylabel(experiment_A)
+    axes[0].legend()
+
+    axes[1].plot(x, window["abundance_corrected_B"], alpha=0.4, label="Unsmoothed")
+    axes[1].plot(x, window[f"smoothed_{sigma}_B"], label=f"σ = {sigma}")
+    axes[1].set_ylabel(experiment_B)
+    axes[1].set_xlabel("Position within 300-nt window")
+    axes[1].legend()
+
+    fig.suptitle(f"Window {window_id}: Gaussian smoothing")
+    plt.tight_layout()
+    plt.show()

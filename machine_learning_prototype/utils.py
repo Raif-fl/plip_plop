@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+from scipy.ndimage import gaussian_filter1d
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -24,15 +25,16 @@ def weighted_mse_loss(reconstruction, target, weights):
 
     return(weighted_loss)
 
-def augment_signal(signal, scale_min=0.2, scale_max=5.0):
+def augment_signal(signal, max_left_shift, max_right_shift, scale_min=0.2, scale_max=5.0):
     # Copy the signal so the original data are not modified.
     augmented = signal.clone()
 
+    # Circularly shift within the safe range.
+    shift = torch.randint(-max_left_shift, max_right_shift + 1, (1,)).item()
+    augmented = torch.roll(augmented, shifts=shift, dims=1)
+
     # Jointly scale both RBP tracks using a log-uniform distribution.
-    log_scale = torch.empty(1).uniform_(
-        math.log(scale_min),
-        math.log(scale_max)
-    )
+    log_scale = torch.empty(1).uniform_(math.log(scale_min), math.log(scale_max))
     scale = torch.exp(log_scale)
     augmented = augmented * scale
 
@@ -49,6 +51,59 @@ def augment_signal(signal, scale_min=0.2, scale_max=5.0):
         augmented = augmented.flip(1)
 
     return(augmented)
+
+def clean_signal_regions(mask, max_gap=5, min_region=5):
+    mask = mask.copy()
+
+    # 1. Bridge internal gaps <= max_gap
+    pos = np.flatnonzero(mask)
+    if len(pos) > 1:
+        internal = mask[pos[0]:pos[-1] + 1]
+        padded = np.pad((~internal).astype(int), 1)
+        changes = np.diff(padded)
+
+        starts = np.where(changes == 1)[0] + pos[0]
+        ends = np.where(changes == -1)[0] + pos[0]
+
+        for start, end in zip(starts, ends):
+            if end - start <= max_gap:
+                mask[start:end] = True
+
+    # 2. Remove signal-rich regions <= min_region
+    padded = np.pad(mask.astype(int), 1)
+    changes = np.diff(padded)
+
+    starts = np.where(changes == 1)[0]
+    ends = np.where(changes == -1)[0]
+
+    for start, end in zip(starts, ends):
+        if end - start <= min_region:
+            mask[start:end] = False
+
+    return mask
+
+def get_shift_bounds(signals, sigma=2, signal_fraction=0.30, max_gap=5, min_region=5):
+    magnitude = np.max(np.abs(signals), axis=1)
+    detection = gaussian_filter1d(magnitude, sigma=sigma, axis=1)
+
+    window_max = detection.max(axis=1, keepdims=True)
+    masks = (window_max > 0) & (detection >= signal_fraction * window_max)
+
+    left_shift = np.zeros(len(signals), dtype=int)
+    right_shift = np.zeros(len(signals), dtype=int)
+    window_size = signals.shape[-1]
+
+    for i, mask in enumerate(masks):
+        mask = clean_signal_regions(mask, max_gap=max_gap, min_region=min_region)
+        pos = np.flatnonzero(mask)
+
+        if len(pos):
+            left_shift[i] = pos[0]
+            right_shift[i] = window_size - 1 - pos[-1]
+        else:
+            left_shift[i] = window_size - 1
+
+    return left_shift, right_shift
 
 class VICRegModel(nn.Module):
     def __init__(self, latent_dim=64, projection_dim=128):

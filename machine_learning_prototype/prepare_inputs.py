@@ -107,10 +107,10 @@ def extract_bigwig_signal(plus_bigwigs, minus_bigwigs, plus_library_sizes, minus
 
 
 def abundance_weighted_enrichment(ip, in_signal, ip_pseudocount, in_pseudocount, p=1):
-    mean_window_signal = (ip + in_signal).mean()
+    mean_window_signal = (ip).mean()
     k = p * mean_window_signal
     log_enrichment = np.log((ip + ip_pseudocount) / (in_signal + in_pseudocount))
-    abundance = ip + in_signal
+    abundance = ip
     abundance_weight = np.divide(abundance, abundance + k, out=np.zeros_like(abundance), where=(abundance + k) != 0)
     return(log_enrichment * abundance_weight)
 
@@ -233,7 +233,7 @@ def parse_args():
     parser.add_argument("--cell_type", required=True)
     parser.add_argument("--buffer", type=int, default=100)
     parser.add_argument("--block_size", type=int, default=300)
-    parser.add_argument("--p", type=float, default=1)
+    parser.add_argument("--p", type=float, default=2)
     parser.add_argument("--sigma", type=float, default=2)
     return(parser.parse_args())
 

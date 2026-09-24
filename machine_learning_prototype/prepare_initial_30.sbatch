@@ -21,7 +21,7 @@ module load samtools
 
 SCRIPT="/tscc/nfs/home/kflanagan/projects/plip_plop/machine_learning_prototype/prepare_inputs.py"
 COMPARISONS="/tscc/nfs/home/kflanagan/projects/plip_plop/machine_learning_prototype/encode_initial_30_comparisons.tsv"
-OUTDIR="/tscc/lustre/ddn/scratch/kflanagan/plip_plop_results/processed_inputs"
+OUTDIR="/tscc/lustre/ddn/scratch/kflanagan/plip_plop_results/p2_processed_inputs"
 
 mkdir -p logs
 mkdir -p "$OUTDIR"
@@ -77,7 +77,7 @@ python "$SCRIPT" \
     --rbp_A "$experiment_A" \
     --rbp_B "$experiment_B" \
     --cell_type "$cell_type" \
-    --p 1 \
+    --p 2 \
     --sigma 2
 
 echo "Finished task: ${SLURM_ARRAY_TASK_ID}"

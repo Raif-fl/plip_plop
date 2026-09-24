@@ -2,3 +2,5 @@
 stereogene/
 .ipynb_checkpoints/
 archive/
+logs/
+__pycache__/
