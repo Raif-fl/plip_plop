@@ -99,6 +99,63 @@ def C17(signal_A, signal_B, max_lag=150, core_size=300):
         )
 
     return correlations, lags
+
+def C16(signal_A, signal_B, max_lag=150, core_size=300):
+    lags = np.arange(-max_lag, max_lag + 1)
+
+    context = (signal_A.shape[2] - core_size) // 2
+    core_start = context
+    core_end = context + core_size
+
+    if max_lag > context:
+        raise ValueError("max_lag exceeds available context.")
+
+    # Central 300-nt analytical window.
+    A_core = signal_A[:, :, core_start:core_end]
+
+    correlations = np.full(
+        (len(signal_A), signal_A.shape[1], signal_B.shape[1], len(lags)),
+        np.nan,
+        dtype=np.float32
+    )
+
+    # A stays anchored to the 300-nt core.
+    # B always contributes a 300-nt slice, shifted through its context.
+    for i, lag in enumerate(lags):
+        A = A_core
+        B = signal_B[:, :, core_start + lag:core_end + lag]
+
+        mean_A = A.mean(axis=2)
+        mean_B = B.mean(axis=2)
+        var_A = A.var(axis=2)
+        var_B = B.var(axis=2)
+
+        A_centered = A - mean_A[:, :, None]
+        B_centered = B - mean_B[:, :, None]
+
+        covariance = np.einsum(
+            "wap,wbp->wab",
+            A_centered,
+            B_centered
+        ) / core_size
+
+        denominator = (
+            var_A[:, :, None]
+            + var_B[:, None, :]
+            + (mean_A[:, :, None] - mean_B[:, None, :]) ** 2
+        )
+
+        ccc = np.full(denominator.shape, np.nan, dtype=np.float32)
+        np.divide(
+            2 * covariance,
+            denominator,
+            out=ccc,
+            where=denominator > 0
+        )
+
+        correlations[:, :, :, i] = ccc
+
+    return correlations, lags
     
 def calculate_fixed_ccc_cross_correlation(ip_A, ip_B, library_sizes_A, library_sizes_B, max_lag=30):
     lags = np.arange(-max_lag, max_lag + 1)
