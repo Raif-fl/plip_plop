@@ -1,0 +1,44 @@
+{
+  "finished": true,
+  "n_requested": 8,
+  "n_processed": 8,
+  "n_errors": 0,
+  "n_workers": 1,
+  "n_modes": 8,
+  "wall_seconds": 2.103689892916009,
+  "first_result_seconds": 0.45668526692315936,
+  "utils_path": "/tscc/projects/ps-yeolab3/kflanagan/plip_plop/matrix_speed_up_test/optimized_pipeline/reference_utils.py",
+  "utils_sha256": "6b9fbff37f142b4a9e8f2eb2fd169aca35b02808c6e06ad31c8efce31e7cffca",
+  "configuration": {
+    "abundance_p": 2,
+    "smoothing_sigma": 2,
+    "island_parameters": {
+      "seed_threshold_fraction": 0.4,
+      "growth_threshold_fraction": 0.2,
+      "max_weak_distance": 5,
+      "gap_tolerance": 2,
+      "shape_balance_power": 1.05,
+      "ridge_fraction": 0.6,
+      "split_prominence_fraction": 0.15,
+      "split_min_peak_fraction": 0.5,
+      "split_min_peak_distance": 8,
+      "split_min_seed_area": 5,
+      "displacement_fold_threshold": 2.0,
+      "mode_score_fraction": 0.33
+    },
+    "quantile_parameters": {
+      "n_points": 128,
+      "signal_influence": 1.0,
+      "signal_power": 1.0,
+      "smoothing_sigma": 0.0
+    },
+    "angle_quantiles": [
+      0.2,
+      0.8
+    ],
+    "checkpoint_windows": 100,
+    "checkpoint_seconds": 30,
+    "stop_on_error": true
+  },
+  "updated_utc": "2026-10-27T21:01:31.120859+00:00"
+}

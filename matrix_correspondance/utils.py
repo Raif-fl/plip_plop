@@ -12,48 +12,46 @@ def calculate_rpm_pseudocount(library_sizes):
     library_sizes = np.atleast_1d(library_sizes).astype(float)
     return np.mean(1e6 / library_sizes)
 
-def abundance_weighted_enrichment(ip, in_signal, ip_pseudocount, in_pseudocount, mean_core_signal, p=2):
+def abundance_weighted_enrichment(ip, in_signal, ip_pseudocount, in_pseudocount, mean_core_signal, p=2, smoothing_sigma=None, smoothing_mode="reflect", smoothing_truncate=4.0):
     """
-    Calculate an IP/IN enrichment score at each position and 
+    Calculate an abundance-weighted IP/IN enrichment score at each position.
 
-    Similar to the original "relative information" score used in the lab. 
+    Similar to the original "relative information" score used in the lab.
     """
     
-    # Calculate a basic log enrichment score. 
-    log_enrichment = np.log((ip + ip_pseudocount) /(in_signal + in_pseudocount))
+    # Calculate a basic log enrichment score.
+    log_enrichment = np.log((ip + ip_pseudocount) / (in_signal + in_pseudocount))
     log_enrichment = np.maximum(log_enrichment, 0)
 
-    # Calculate a sort of pseudo "shrinkage factor" for the abundance weight.  
+    # Calculate a pseudo-shrinkage factor for the abundance weight.
     k = p * mean_core_signal
 
-    # Calculate the abundance weight as a function of the total window signal captured at each position. 
+    # Calculate the abundance weight from the IP signal at each position.
     denominator = ip + k
     abundance_weight = np.divide(ip, denominator, out=np.zeros_like(ip, dtype=float), where=denominator > 0)
 
-    return log_enrichment * abundance_weight
+    # Calculate the final enrichment score.
+    score = log_enrichment * abundance_weight
 
-def correspondence_matrix(signal_A, signal_B, core_size):
+    # Smooth the final score across positions.
+    if smoothing_sigma is not None and smoothing_sigma > 0:
+        score = gaussian_filter1d(score, sigma=smoothing_sigma, axis=-1, mode=smoothing_mode, truncate=smoothing_truncate)
+
+    return score
+
+def correspondence_matrix(signal_A, signal_B):
     """
-    Build a correspondence matrix for each window comparison.
+    Build a correspondence matrix for each 300-nt window.
 
-    Each cell M[i, j] contains the min(A_i, B_j).
+    Each cell M[i, j] contains min(A_i, B_j).
     """
 
-    # Extracts out the core part of the signal in the window
-    ###!!!###Required because we made all the windows extra big for earlier cross-correlation prototype,
-    ###!!!### should eventually be removed after changing window definition again
-    context = (signal_A.shape[2] - core_size) // 2
-    core_start = context
-    core_end = context + core_size
-
-    # Central 300-nt window.
-    A = signal_A[:, :, core_start:core_end].mean(axis=1)
-    B = signal_B[:, :, core_start:core_end].mean(axis=1)
+    # Average replicates at each position.
+    A = signal_A.mean(axis=1)
+    B = signal_B.mean(axis=1)
 
     # Compare every position in A with every position in B.
-    matrices = np.minimum(A[:, :, None], B[:, None, :]).astype(np.float32)
-
-    return matrices
+    return np.minimum(A[:, :, None], B[:, None, :]).astype(np.float32)
 
 def island_central_ridge(matrix, region, ridge_fraction=0.9):
     """
@@ -104,10 +102,10 @@ def island_central_ridge(matrix, region, ridge_fraction=0.9):
 
     return ridge
 
-def island_axis_profile(matrix, region, axis, smoothing):
+def island_axis_profile(matrix, region, axis):
     """
     Return a maximum support profile along the A or B axis.
-    A maximum support profil is basically just a line filled with all of the maximum values along an axis. 
+    A maximum support profile is basically just a line filled with all of the maximum values along an axis. 
     """
     # Identify profile along A or B axis. 
     if axis == "A":
@@ -117,11 +115,9 @@ def island_axis_profile(matrix, region, axis, smoothing):
         positions = np.flatnonzero(region.any(axis=0))
         profile = np.array([matrix[region[:, position], position].max() for position in positions])
 
-    # Additional smoothing is helpful for identifying splits. 
-    smooth = gaussian_filter1d(profile, smoothing, mode="nearest") if smoothing > 0 else profile
-    return positions, smooth
+    return positions, profile
 
-def best_island_split(matrix, region, seed_mask, split_prominence_fraction=0.25, split_min_peak_fraction=0.5, split_min_peak_distance=8, split_smoothing=4.0, split_min_seed_area=5):
+def best_island_split(matrix, region, seed_mask, split_prominence_fraction=0.25, split_min_peak_fraction=0.5, split_min_peak_distance=8, split_min_seed_area=5):
     """
     Find the strongest valid island-local valley along either axis.
     """
@@ -129,7 +125,7 @@ def best_island_split(matrix, region, seed_mask, split_prominence_fraction=0.25,
 
     for axis in ("A", "B"):
         # Identify the maximum support profile and record its positions. 
-        positions, profile = island_axis_profile(matrix, region, axis, split_smoothing)
+        positions, profile = island_axis_profile(matrix, region, axis)
         
         # Reject any islands too small to evaluate. 
         if len(profile) < 2 * split_min_peak_distance + 1:
@@ -177,7 +173,7 @@ def best_island_split(matrix, region, seed_mask, split_prominence_fraction=0.25,
     # Select and return the best proposed split (if any). 
     return max(candidates, key=lambda x: (x["valley_depth"], x["smaller_peak"])) if candidates else None
 
-def split_island_region(matrix, region, seed_mask, split_prominence_fraction=0.25, split_min_peak_fraction=0.5, split_min_peak_distance=8, split_smoothing=4.0, split_min_seed_area=5):
+def split_island_region(matrix, region, seed_mask, split_prominence_fraction=0.25, split_min_peak_fraction=0.5, split_min_peak_distance=8, split_min_seed_area=5):
     """Recursively split an overmerged island at its strongest valid axis valley."""
     pending = [region]
     finished = []
@@ -186,7 +182,7 @@ def split_island_region(matrix, region, seed_mask, split_prominence_fraction=0.2
         current = pending.pop()
         split = best_island_split(matrix, current, seed_mask, split_prominence_fraction=split_prominence_fraction,
                                   split_min_peak_fraction=split_min_peak_fraction, split_min_peak_distance=split_min_peak_distance,
-                                  split_smoothing=split_smoothing, split_min_seed_area=split_min_seed_area)
+                                  split_min_seed_area=split_min_seed_area)
         if split is None:
             finished.append(current)
         else:
@@ -195,7 +191,7 @@ def split_island_region(matrix, region, seed_mask, split_prominence_fraction=0.2
     return finished
 
 
-def correspondence_islands(matrix, seed_threshold_fraction=0.4, growth_threshold_fraction=0.39, max_weak_distance=2, gap_tolerance=1, shape_balance_power=1.05, ridge_fraction=0.9, split_prominence_fraction=0.25, split_min_peak_fraction=0.5, split_min_peak_distance=8, split_smoothing=4.0, split_min_seed_area=5):
+def correspondence_islands(matrix, seed_threshold_fraction=0.4, growth_threshold_fraction=0.39, max_weak_distance=2, gap_tolerance=1, shape_balance_power=1.05, ridge_fraction=0.9, split_prominence_fraction=0.25, split_min_peak_fraction=0.5, split_min_peak_distance=8, split_min_seed_area=5):
     """
     Identify correspondence-support islands. 
     """
@@ -256,7 +252,7 @@ def correspondence_islands(matrix, seed_threshold_fraction=0.4, growth_threshold
         # Perform the splitting. 
         split_regions.extend(split_island_region(matrix, region, seed_mask, split_prominence_fraction=split_prominence_fraction,
                                                  split_min_peak_fraction=split_min_peak_fraction, split_min_peak_distance=split_min_peak_distance,
-                                                 split_smoothing=split_smoothing, split_min_seed_area=split_min_seed_area))
+                                                split_min_seed_area=split_min_seed_area))
 
     # Initialize list for island creation. 
     labels = np.zeros_like(raw_labels, dtype=np.int32)
@@ -300,173 +296,207 @@ def correspondence_islands(matrix, seed_threshold_fraction=0.4, growth_threshold
     
     return seed_mask, island_mask, labels, islands
 
-def island_conflicts(labels, islands):
+def constrain_island_to_lag(matrix, labels, island, cell_lags, lag, shape_balance_power):
     """
-    Identify competing correspondence islands.
-
-    Two islands conflict if they occupy any of the same A positions
-    or any of the same B positions.
+    Restrict one island to a single shared lag for scoring and conflicts.
     """
 
-    # Initialize projections dictionary. 
-    projections = {}
+    # Select the island cells.
+    full_region = labels == island["island_id"]
 
-    # Loop through all islands and record projections. 
-    for island in islands:
-        island_id = island["island_id"]
-        region = labels == island_id
+    # Weight the two diagonals nearest the requested lag.
+    line_weights = np.maximum(1 - np.abs(cell_lags - lag), 0)
 
-        projections[island_id] = {
-            # Which A positions are claimed by this island?
-            "A": region.any(axis=1),
+    # Extract out region where line weights are above 0. 
+    region = full_region & (line_weights > 0)
 
-            # Which B positions are claimed by this island?
-            "B": region.any(axis=0),
+    # Extract out coordinates of valid region. 
+    coordinates = np.argwhere(region)
+    # An allowed lag may pass through a gap in the island.
+    if len(coordinates) == 0:
+        return {
+            "island_id": island["island_id"], "region": region,
+            "ridge": np.empty((0, 2), dtype=float),
+            "total_support": 0.0, "selection_score": 0.0,
         }
 
-    # Initialize conflict list. 
-    conflicts = []
+    A_positions = coordinates[:, 0]
+    B_positions = coordinates[:, 1]
 
-    # Loop through all island combinations. 
-    for i in range(len(islands)):
-        id_i = islands[i]["island_id"]
-        for j in range(i + 1, len(islands)):
-            id_j = islands[j]["island_id"]
+    # Get new widths and support score. 
+    A_width = A_positions.max() - A_positions.min() + 1
+    B_width = B_positions.max() - B_positions.min() + 1
+    total_support = np.sum(matrix[region] * line_weights[region])
+    shape_balance = min(A_width, B_width) / max(A_width, B_width)
+    selection_score = total_support * shape_balance ** shape_balance_power
 
-            
-            A_overlap = np.any(projections[id_i]["A"] & projections[id_j]["A"])
-            B_overlap = np.any(projections[id_i]["B"] & projections[id_j]["B"])
+    # Keep ridge points within half a cell of the selected lag.
+    ridge = island["ridge"]
+    ridge_lags = ridge[:, 1] - ridge[:, 0]
+    ridge = ridge[np.abs(ridge_lags - lag) <= 0.5]
 
-            # If no overlap, move on. 
-            if not (A_overlap or B_overlap):
-                continue
+    return {
+        "island_id": island["island_id"],
+        "region": region,
+        "ridge": ridge,
+        "total_support": total_support,
+        "selection_score": selection_score,
+    }
 
-            conflicts.append({
-                "island_1": id_i,
-                "island_2": id_j
-            })
+def constrain_island_to_mode_interval(labels, island, cell_lags, lag_min, lag_max):
+    """Return the full island area reachable anywhere within a mode interval."""
 
-    return conflicts
+    # Select island cells within half a cell of the lag interval.
+    full_region = labels == island["island_id"]
+    region = full_region & (cell_lags >= lag_min - 0.5) & (cell_lags <= lag_max + 0.5)
 
-def ridge_bounds(ridge):
-    """
-    Return the ridge bounds as A_min, A_max, B_min, B_max.
-    """
-    return (float(ridge[:, 0].min()), float(ridge[:, 0].max()),
-            float(ridge[:, 1].min()), float(ridge[:, 1].max()))
+    # Keep ridge points within half a cell of the lag interval.
+    ridge = island["ridge"]
+    ridge_lags = ridge[:, 1] - ridge[:, 0]
+    ridge = ridge[(ridge_lags >= lag_min - 0.5) & (ridge_lags <= lag_max + 0.5)]
 
-def ridge_conflicts(island_1, island_2):
-    """
-    Return whether two ridges claim any of the same A or B positions.
-    """
-    # Get ridge boundaries. 
-    A_1_min, A_1_max, B_1_min, B_1_max = ridge_bounds(island_1["ridge"])
-    A_2_min, A_2_max, B_2_min, B_2_max = ridge_bounds(island_2["ridge"])
+    return {"island_id": island["island_id"], "region": region, "ridge": ridge}
 
-    # Detect if there are any overlaps. 
-    A_overlap = max(A_1_min, A_2_min) <= min(A_1_max, A_2_max)
-    B_overlap = max(B_1_min, B_2_min) <= min(B_1_max, B_2_max)
+def region_bounds(region):
+    """Return one constrained region's A_min, A_max, B_min, and B_max."""
+    coordinates = np.argwhere(region)
+    return (int(coordinates[:, 0].min()), int(coordinates[:, 0].max()),
+            int(coordinates[:, 1].min()), int(coordinates[:, 1].max()))
+
+def regions_conflict(region_1, region_2):
+    """Return whether two constrained regions reuse any A or B positions."""
+    A_overlap = np.any(region_1.any(axis=1) & region_2.any(axis=1))
+    B_overlap = np.any(region_1.any(axis=0) & region_2.any(axis=0))
     return A_overlap or B_overlap
 
-def strongest_ridge_compatible_subset(islands):
-    """
-    Find the strongest non-overlapping, position-preserving subset of islands
-    within an already constructed mode.
-    """
+def strongest_mode_compatible_subset(members):
+    """Find the strongest position-preserving subset of constrained members."""
 
-    # Identify the boundaries of each ridge. 
-    bounded = [(island, *ridge_bounds(island["ridge"])) for island in islands]
+    # Attach region bounds and sort members by their starting positions.
+    bounded = [(member, *region_bounds(member["region"])) for member in members if member["region"].any()]
+    if not bounded:
+        return (), 0.0
 
-    # Sort islands by where their ridges begin along A, then B.
-    # (establishes the order in which compatible ridge chains are built).
     ordered = sorted(bounded, key=lambda x: (x[1], x[3], x[0]["island_id"]))
-
-    # Initialize lists for the best score and best path. 
     best_scores = []
     best_paths = []
 
-    # Treat each island as the possible endpoint of a compatible chain.
-    for j, (island, island_A_min, _, island_B_min, _) in enumerate(ordered):
+    # Build the highest-scoring compatible chain ending at each member.
+    for j, (member, member_A_min, _, member_B_min, _) in enumerate(ordered):
+        best_score = member["selection_score"]
+        best_path = (member["island_id"],)
 
-        # Begin with the current island by itself.
-        island_score = island["selection_score"]
-        best_score = island_score
-        best_path = (island["island_id"],)
-
-        # Check whether the current island can extend a chain ending at any previously processed island.
         for i, (_, _, previous_A_max, _, previous_B_max) in enumerate(ordered[:j]):
-
-            # The previous ridge must finish before the current ridge begins along both A and B. Overlap along
-            # either axis means that the two islands are competing for some of the same signal.
-            if previous_A_max >= island_A_min or previous_B_max >= island_B_min:
+            if previous_A_max >= member_A_min or previous_B_max >= member_B_min:
                 continue
 
-            # Extend the best chain ending at the previous island.
-            candidate_score = best_scores[i] + island_score
-            candidate_path = best_paths[i] + (island["island_id"],)
-
-            # Prefer the chain with the greater total score.
-            # If scores tie, prefer the chain containing more islands.
+            candidate_score = best_scores[i] + member["selection_score"]
+            candidate_path = best_paths[i] + (member["island_id"],)
             if (candidate_score, len(candidate_path)) > (best_score, len(best_path)):
                 best_score = candidate_score
                 best_path = candidate_path
 
-        # Store the strongest compatible chain ending at the current island.
         best_scores.append(best_score)
         best_paths.append(best_path)
 
-    # The strongest overall chain may end at any island, so select the best result from all possible endpoints. 
-    best_index = max(
-        range(len(ordered)),
-        key=lambda i: (best_scores[i], len(best_paths[i]))
-    )
-
+    best_index = max(range(len(ordered)), key=lambda i: (best_scores[i], len(best_paths[i])))
     return best_paths[best_index], best_scores[best_index]
 
-def summarize_correspondence_mode(members):
-    """
-    Summarize islands that share at least one common ridge lag.
-    """
-    lag_min = max(island["lag_min"] for island in members)
-    lag_max = min(island["lag_max"] for island in members)
-    if lag_min > lag_max:
-        raise ValueError("Mode members do not share a common lag.")
+def score_correspondence_mode_at_lag(members, matrix, labels, cell_lags, shape_balance_power, lag):
+    """Constrain every member to one shared lag and score the resulting mode."""
 
-    scores = [island.get("selection_score", island["total_support"]) for island in members]
-    compatible_islands, compatible_score = strongest_ridge_compatible_subset(members)
+    # Constrain every member to the requested lag.
+    constrained_members = [
+        constrain_island_to_lag(matrix, labels, island, cell_lags, lag, shape_balance_power)
+        for island in members
+    ]
+
+    # Select the highest-scoring chain with non-overlapping A and B ranges.
+    compatible_islands, compatible_score = strongest_mode_compatible_subset(constrained_members)
     compatible_ids = set(compatible_islands)
-    ridge_conflict_pairs = tuple(
-        (members[i]["island_id"], members[j]["island_id"])
-        for i in range(len(members)) for j in range(i + 1, len(members))
-        if ridge_conflicts(members[i], members[j])
+    region_conflict_pairs = tuple(
+        (constrained_members[i]["island_id"], constrained_members[j]["island_id"])
+        for i in range(len(constrained_members)) for j in range(i + 1, len(constrained_members))
+        if regions_conflict(constrained_members[i]["region"], constrained_members[j]["region"])
     )
-    possible_pairs = len(members) * (len(members) - 1) / 2
-    zero_lag = lag_min <= 0 <= lag_max
+    possible_pairs = len(constrained_members) * (len(constrained_members) - 1) / 2
+    candidate_ids = tuple(sorted(member["island_id"] for member in constrained_members))
+    excluded_ids = tuple(island_id for island_id in candidate_ids if island_id not in compatible_ids)
 
     return {
-        "islands": tuple(sorted(island["island_id"] for island in members)),
-        "n_islands": len(members),
+        "candidate_islands": candidate_ids,
+        "islands": compatible_islands,
+        "excluded_islands": excluded_ids,
+        "n_candidate_islands": len(candidate_ids),
+        "n_islands": len(compatible_islands),
         "compatible_islands": compatible_islands,
         "n_independent_islands": len(compatible_islands),
-        "ridge_conflicts": ridge_conflict_pairs,
-        "conflict_fraction": len(ridge_conflict_pairs) / possible_pairs if possible_pairs else 0.0,
-        "lag_min": lag_min,
-        "lag_max": lag_max,
-        "lag": 0.0 if zero_lag else (lag_min + lag_max) / 2,
-        "zero_lag": zero_lag,
-        # Overlapping ridges remain members but cannot add duplicated evidence.
+        "region_conflicts": region_conflict_pairs,
+        "conflict_fraction": len(region_conflict_pairs) / possible_pairs if possible_pairs else 0.0,
+        "lag": float(lag),
         "selection_score": compatible_score,
-        "all_island_score": sum(scores),
-        "total_support": sum(island["total_support"] for island in members),
-        "compatible_total_support": sum(island["total_support"] for island in members
-                                        if island["island_id"] in compatible_ids),
+        "all_island_score": sum(member["selection_score"] for member in constrained_members),
+        "total_support": sum(member["total_support"] for member in constrained_members),
+        "compatible_total_support": sum(member["total_support"] for member in constrained_members
+                                        if member["island_id"] in compatible_ids),
+        "scoring_regions": {member["island_id"]: member["region"] for member in constrained_members},
+        "member_selection_scores": {member["island_id"]: member["selection_score"]
+                                    for member in constrained_members},
     }
 
+def candidate_mode_lags(lag_min, lag_max):
+    """Return every lag at which a mode's line score can reach a maximum."""
+
+    # Combine the interval endpoints with all enclosed integer lags.
+    integer_lags = np.arange(np.ceil(lag_min), np.floor(lag_max) + 1)
+    return np.unique(np.concatenate(([lag_min], integer_lags, [lag_max]))).astype(float)
+
+def build_correspondence_mode(members, matrix, labels, shape_balance_power, lag_min, lag_max):
+    """Move one shared line through a mode interval and retain its best lag."""
+
+    # Calculate the lag at each matrix position.
+    A_coordinates, B_coordinates = np.indices(matrix.shape)
+    cell_lags = B_coordinates - A_coordinates
+
+    # Score the member set at each candidate lag.
+    scored_lags = [
+        score_correspondence_mode_at_lag(members, matrix, labels, cell_lags, shape_balance_power, lag)
+        for lag in candidate_mode_lags(lag_min, lag_max)
+    ]
+    # Only supported lags can represent a mode.
+    supported_lags = [candidate for candidate in scored_lags if candidate["n_islands"] > 0]
+    if not supported_lags:
+        return None
+
+    # Break score ties by member count, total evidence, then interval proximity.
+    interval_center = (lag_min + lag_max) / 2
+    mode = max(supported_lags, key=lambda x: (
+        x["selection_score"], x["n_islands"], x["all_island_score"],
+        -abs(x["lag"] - interval_center)))
+
+    mode["lag_min"] = lag_min
+    mode["lag_max"] = lag_max
+    mode["zero_lag"] = lag_min <= 0 <= lag_max
+    mode["evaluated_lags"] = tuple(candidate["lag"] for candidate in scored_lags)
+
+    # Build interval-constrained regions and ridges for each member.
+    interval_members = [
+        constrain_island_to_mode_interval(labels, island, cell_lags, lag_min, lag_max)
+        for island in members
+    ]
+    mode["constrained_regions"] = {member["island_id"]: member["region"] for member in interval_members}
+    mode["constrained_ridges"] = {member["island_id"]: member["ridge"] for member in interval_members}
+    return mode
+
+def summarize_correspondence_mode(members, matrix, labels, shape_balance_power):
+    """Find the common lag interval and build its mode-constrained regions."""
+    lag_min = max(island["lag_min"] for island in members)
+    lag_max = min(island["lag_max"] for island in members)
+    return build_correspondence_mode(members, matrix, labels, shape_balance_power, lag_min, lag_max)
+
 def number_modes(modes):
-    """
-    Sort modes by their representative lag and assign stable IDs.
-    """
-    
+    """Sort modes by representative lag and assign sequential IDs."""
+
     numbered = []
     for mode_id, mode in enumerate(sorted(modes, key=lambda x: (x["lag"], x["lag_min"], x["lag_max"])), start=1):
         numbered_mode = dict(mode)
@@ -474,43 +504,80 @@ def number_modes(modes):
         numbered.append(numbered_mode)
     return numbered
 
-def correspondence_modes(islands):
-    """
-    Find maximal island groups whose ridge-lag intervals share a point.
+def correspondence_modes(islands, matrix, labels, shape_balance_power):
+    """Find maximal island groups with overlapping ridge-lag intervals."""
 
-    Complex math used for a simple idea, if you can draw a line parallel to the 0 lag line that
-    cuts through multiple ridges, the islands with those ridges may be part of the same mode. 
-    """
-
-    # For efficiency, we test every endpoint for membership (equivalent to testing the whole interval). 
+    # Collect all ridge-interval endpoints.
     endpoints = sorted({value for island in islands for value in (island["lag_min"], island["lag_max"])})
 
-    # Identify candidate sets of islands for mode. 
+    # Build the island set covering each endpoint.
     candidate_sets = {
         frozenset(island["island_id"] for island in islands
                   if island["lag_min"] <= point <= island["lag_max"])
         for point in endpoints
     }
 
-    # Remove candidate modes that are entirely contained within another valid mode.
+    # Remove sets contained within larger candidate sets.
     maximal_sets = [candidate for candidate in candidate_sets if not any(candidate < other for other in candidate_sets)]
 
-    # Convert to lookup table. 
+    # Index islands by ID.
     island_lookup = {island["island_id"]: island for island in islands}
 
-    # Convert back to complete island objects. 
-    modes = [summarize_correspondence_mode([island_lookup[island_id] for island_id in sorted(group)]) for group in maximal_sets]
-    return number_modes(modes)
+    # Build each maximal set over its shared lag interval.
+    modes = [
+        summarize_correspondence_mode(
+            [island_lookup[island_id] for island_id in sorted(group)],
+            matrix, labels, shape_balance_power)
+        for group in maximal_sets
+    ]
+    return number_modes([mode for mode in modes if mode is not None])
 
-def select_correspondence_modes(islands, conflicts, displacement_fold_threshold=2.0, mode_score_fraction=0.33):
+def modes_conflict(mode_1, mode_2):
+    """Return whether two modes reuse A or B signal at their selected lags."""
+    for island_1 in mode_1["compatible_islands"]:
+        region_1 = mode_1["scoring_regions"][island_1]
+        for island_2 in mode_2["compatible_islands"]:
+            region_2 = mode_2["scoring_regions"][island_2]
+            if regions_conflict(region_1, region_2):
+                return True
+    return False
+
+def remove_mode_members_conflicting_with_reference(mode, reference_mode, island_lookup, matrix, labels, shape_balance_power):
+    """Remove only the portions of a mode that compete with a retained mode."""
+    reference_regions = [
+        reference_mode["scoring_regions"][island_id]
+        for island_id in reference_mode["compatible_islands"]
+    ]
+    remaining_ids = []
+    removed_ids = []
+
+    # Partition candidate islands by conflict with the reference regions.
+    for island_id in mode["candidate_islands"]:
+        region = mode["scoring_regions"][island_id]
+        if any(regions_conflict(region, reference_region) for reference_region in reference_regions):
+            removed_ids.append(island_id)
+        else:
+            remaining_ids.append(island_id)
+
+    if not remaining_ids:
+        return None, tuple(removed_ids)
+
+    # Rebuild the remaining members over the original lag interval.
+    remaining_members = [island_lookup[island_id] for island_id in remaining_ids]
+    trimmed_mode = build_correspondence_mode(
+        remaining_members, matrix, labels, shape_balance_power,
+        mode["lag_min"], mode["lag_max"])
+    return trimmed_mode, tuple(removed_ids)
+
+def select_correspondence_modes(islands, matrix, labels, shape_balance_power, displacement_fold_threshold=2.0, mode_score_fraction=0.33):
     """
     Form modes, resolve central-mode conflicts, and retain viable modes.
     """
 
-    # Build every lag hypothesis before the central mode resolves conflicts.
-    provisional_modes = correspondence_modes(islands)
+    # Build all provisional modes.
+    provisional_modes = correspondence_modes(islands, matrix, labels, shape_balance_power)
 
-    # Rare instance where no proper modes are identified. 
+    # Return an empty selection when no provisional modes exist.
     if not provisional_modes:
         return {
             "surviving_islands": [], "deleted_island_ids": set(),
@@ -518,43 +585,41 @@ def select_correspondence_modes(islands, conflicts, displacement_fold_threshold=
             "central_gate": {"status": "absent"},
             "rejected_provisional_mode_ids": set(),
             "rejected_mode_ids": set(), "island_modes": {},
+            "mode_conflicts": [], "removed_mode_members": [],
         }
 
-    # # Find the strongest scroing more. 
+    # Normalize provisional scores to the strongest score.
     strongest_score = max(mode["selection_score"] for mode in provisional_modes)
     for mode in provisional_modes:
         mode["score_fraction_of_strongest"] = mode["selection_score"] / strongest_score if strongest_score > 0 else 0.0
 
-    # Identify a central mode if present. 
+    # Find the provisional mode whose interval contains zero lag.
     central_mode = next((mode for mode in provisional_modes if mode["zero_lag"]), None)
 
-    # Prepare sets to record results prior to algorithm. 
-    deleted_island_ids = set()
+    removed_mode_members = []
     rejected_provisional_mode_ids = set()
     central_gate = {"status": "absent"}
     candidate_modes = [dict(mode) for mode in provisional_modes]
 
-    # If there is a central mode
-    if central_mode is not None:
-        central_member_ids = set(central_mode["islands"])
-        central_ids = set(central_mode["compatible_islands"])
+    # Record pairwise conflicts among provisional modes.
+    mode_conflicts = [
+        (provisional_modes[i]["mode_id"], provisional_modes[j]["mode_id"])
+        for i in range(len(provisional_modes)) for j in range(i + 1, len(provisional_modes))
+        if modes_conflict(provisional_modes[i], provisional_modes[j])
+    ]
 
-        # Identify every displaced mode that competes with a central mode. 
-        conflict_pairs = {frozenset((conflict["island_1"], conflict["island_2"])) for conflict in conflicts}
+    # Resolve conflicts when a zero-lag mode exists.
+    if central_mode is not None:
+        # Collect displaced modes that conflict with the central mode.
         conflicting_modes = [
             mode for mode in provisional_modes
-            if not mode["zero_lag"] and (
-                bool(central_ids & set(mode["compatible_islands"]))
-                or any(frozenset((central_id, displaced_id)) in conflict_pairs
-                       for central_id in central_ids for displaced_id in mode["compatible_islands"])
-            )
+            if not mode["zero_lag"] and modes_conflict(central_mode, mode)
         ]
-        
-        # Identify strongest competing mode. 
+
+        # Select the strongest conflicting displaced mode.
         strongest_conflicting = max(conflicting_modes, key=lambda x: x["selection_score"]) if conflicting_modes else None
 
-        # Reject the central mode if it is too weak relative to the strongest mode,
-        # regardless of whether the two modes conflict.
+        # Reject a central mode below the minimum score fraction.
         if not central_mode["score_fraction_of_strongest"] >= mode_score_fraction:
             rejected_provisional_mode_ids.add(central_mode["mode_id"])
             candidate_modes = [dict(mode) for mode in provisional_modes if not mode["zero_lag"]]
@@ -567,7 +632,7 @@ def select_correspondence_modes(islands, conflicts, displacement_fold_threshold=
                 "score_fraction_of_strongest": central_mode["score_fraction_of_strongest"],
             }
 
-        # Case where there is a conflicting mode strong enough that we cannot select the central mode. 
+        # Reject a central mode overwhelmed by a conflicting displaced mode.
         elif strongest_conflicting is not None and strongest_conflicting["selection_score"] >= displacement_fold_threshold * central_mode["selection_score"]:
             rejected_provisional_mode_ids.add(central_mode["mode_id"])
             candidate_modes = [dict(mode) for mode in provisional_modes if not mode["zero_lag"]]
@@ -581,30 +646,25 @@ def select_correspondence_modes(islands, conflicts, displacement_fold_threshold=
                 "displaced_score": strongest_conflicting["selection_score"],
                 "required_displaced_score": displacement_fold_threshold * central_mode["selection_score"],
             }
-        # If the central mode survives, delete all conflicting islands (assume central)
+        # Otherwise trim conflicting members from displaced modes.
         else:
-            for conflict in conflicts:
-                island_1, island_2 = conflict["island_1"], conflict["island_2"]
-                if island_1 in central_ids and island_2 not in central_member_ids:
-                    deleted_island_ids.add(island_2)
-                elif island_2 in central_ids and island_1 not in central_member_ids:
-                    deleted_island_ids.add(island_1)
+            island_lookup = {island["island_id"]: island for island in islands}
+            candidate_modes = [dict(central_mode)]
 
-            # Identify the islands that are not central or conflicting. 
-            displaced_islands = [
-                island for island in islands
-                if island["island_id"] not in central_member_ids
-                and island["island_id"] not in deleted_island_ids
-            ]
+            for mode in provisional_modes:
+                if mode["zero_lag"]:
+                    continue
 
-            # Recover islands belonging to the central mode. 
-            central_members = [island for island in islands if island["island_id"] in central_member_ids]
+                trimmed_mode, removed_ids = remove_mode_members_conflicting_with_reference(
+                    mode, central_mode, island_lookup, matrix, labels, shape_balance_power)
+                if removed_ids:
+                    removed_mode_members.append({
+                        "provisional_mode_id": mode["mode_id"],
+                        "island_ids": removed_ids,
+                    })
+                if trimmed_mode is not None:
+                    candidate_modes.append(trimmed_mode)
 
-            # Rebuild non-deleted candidate modes. 
-            candidate_modes = [summarize_correspondence_mode(central_members),
-                               *correspondence_modes(displaced_islands)]
-
-            # Record that the central mode survived. 
             central_gate = {
                 "status": "retained", "reason": "central_mode_won_conflicts",
                 "central_mode_id": central_mode["mode_id"],
@@ -615,23 +675,24 @@ def select_correspondence_modes(islands, conflicts, displacement_fold_threshold=
                 "strongest_conflicting_score": strongest_conflicting["selection_score"] if strongest_conflicting else None,
             }
 
-    # identify islands and candidate modes that survived the central mode filtration. 
-    surviving_islands = [island for island in islands if island["island_id"] not in deleted_island_ids]
+    # Retain islands represented by at least one candidate mode.
+    surviving_ids = {island_id for mode in candidate_modes for island_id in mode["islands"]}
+    surviving_islands = [island for island in islands if island["island_id"] in surviving_ids]
+    deleted_island_ids = {island["island_id"] for island in islands} - surviving_ids
+    # Renumber candidate modes and normalize their scores.
     candidate_modes = number_modes(candidate_modes)
 
-    # Find the strongest scoring mode. 
     strongest_score = max((mode["selection_score"] for mode in candidate_modes), default=0.0)
 
-    # Calculate mode score fraction. 
     for mode in candidate_modes:
         mode["score_fraction_of_strongest"] = mode["selection_score"] / strongest_score if strongest_score > 0 else 0.0
 
-    # Identify retained and ignored modes. 
+    # Keep candidates above the score-fraction threshold.
     retained_candidates = [mode for mode in candidate_modes
                            if mode["score_fraction_of_strongest"] >= mode_score_fraction]
     rejected_mode_ids = {mode["mode_id"] for mode in candidate_modes if mode not in retained_candidates}
 
-    # Create the final list of modes. 
+    # Renumber retained modes while preserving their candidate IDs.
     modes = []
     for mode_id, candidate in enumerate(retained_candidates, start=1):
         mode = dict(candidate)
@@ -639,7 +700,7 @@ def select_correspondence_modes(islands, conflicts, displacement_fold_threshold=
         mode["mode_id"] = mode_id
         modes.append(mode)
 
-    # Design a dictionary that specifies which islands belong to which modes. 
+    # Map each island ID to its retained mode IDs.
     island_modes = {}
     for mode in modes:
         for island_id in mode["islands"]:
@@ -656,243 +717,14 @@ def select_correspondence_modes(islands, conflicts, displacement_fold_threshold=
         "rejected_provisional_mode_ids": rejected_provisional_mode_ids,
         "rejected_mode_ids": rejected_mode_ids,
         "island_modes": island_modes,
+        "mode_conflicts": mode_conflicts,
+        "removed_mode_members": removed_mode_members,
     }
-
-########################### SIMULATION ####################################
-
-def gaussian(x, center, width, height=1.0):
-    return height * np.exp(-0.5 * ((x - center) / width) ** 2)
-
-
-def plateau(x, center, width, edge=5.0, height=1.0):
-    left = 1 / (1 + np.exp(-(x - (center - width / 2)) / edge))
-    right = 1 / (1 + np.exp((x - (center + width / 2)) / edge))
-    return height * left * right
-
-
-def smooth_noise(rng, scale, n):
-    anchor_x = np.linspace(0, n - 1, 32)
-    anchors = rng.normal(0, scale, len(anchor_x))
-    return np.interp(np.arange(n), anchor_x, anchors)
-
-
-def draw_count(rng, count_range):
-    low, high = count_range
-    return int(rng.integers(low, high + 1))
-
-
-def draw_centers(rng, count, location_range):
-    low, high = location_range
-    return np.sort(rng.uniform(low, high, count))
-
-
-def draw_heights(rng, count, signal_level, signal_variation):
-    low = signal_level * (1 - signal_variation)
-    high = signal_level * (1 + signal_variation)
-    return np.maximum(rng.uniform(low, high, count), 0.02)
-
-
-def draw_widths(rng, count, width_range):
-    return rng.uniform(width_range[0], width_range[1], count)
-
-
-def peak_train(x, centers, widths, heights, n, *, background=0.06):
-    values = np.full(n, background, dtype=float)
-
-    for center, width, height in zip(centers, widths, heights):
-        values += gaussian(x, center, width, height)
-
-    return values
-
-
-def primitive(x, name, center, width, height, n):
-    background = np.full(n, 0.06)
-
-    if name == "bell":
-        return background + gaussian(x, center, width, height)
-    if name == "broad":
-        return background + gaussian(x, center, width * 2.4, height * 0.82)
-    if name == "double":
-        return (background
-                + gaussian(x, center - width * 0.8, width * 0.65, height * 0.88)
-                + gaussian(x, center + width * 0.9, width * 0.8, height * 0.70))
-    if name == "plateau":
-        return background + plateau(x, center, width * 3.3, max(2, width * 0.25), height)
-    if name == "blip":
-        return background + gaussian(x, center, max(2, width * 0.22), height)
-    if name == "dip":
-        return 0.14 + height * 0.75 - gaussian(x, center, width * 0.7, height * 0.82)
-    if name == "noise":
-        return background
-
-    raise ValueError(f"unknown shape: {name}")
-
-
-def add_noise(values, rng, noise_level, n):
-    fine_noise = rng.normal(0, noise_level, n)
-    drift = smooth_noise(rng, noise_level * 0.75, n)
-    return values + fine_noise + drift
-
-
-def shifted_centers(rng, centers, displacement_range, n):
-    distances = rng.uniform(displacement_range[0], displacement_range[1], len(centers))
-    directions = rng.choice([-1, 1], len(centers))
-    return np.clip(centers + distances * directions, 0, n - 1)
-
-
-def shared_displacement(rng, centers, displacement_range, n):
-    min_distance, max_distance = displacement_range
-    room_left = np.min(centers)
-    room_right = (n - 1) - np.max(centers)
-    options = []
-
-    if room_left >= min_distance:
-        options.append((-1, min(max_distance, room_left)))
-    if room_right >= min_distance:
-        options.append((1, min(max_distance, room_right)))
-
-    direction, allowed_max = options[int(rng.integers(len(options)))]
-    return direction * rng.uniform(min_distance, allowed_max)
-
-
-def unrelated_centers(rng, count, existing, location_range, min_distance=25):
-    result = []
-
-    for _ in range(count):
-        candidates = rng.uniform(location_range[0], location_range[1], 100)
-        valid = [c for c in candidates if np.all(np.abs(np.asarray(existing) - c) >= min_distance)]
-        result.append(valid[0] if valid else candidates[0])
-
-    return np.sort(result)
-
-
-def simulate_pair(scenario, rng, signal_level=0.75, signal_variation=0.15, noise_level=0.025, peak_count_range=(1, 4), unrelated_peak_count_range=(1, 3), location_range=(20, 280), width_range=(6, 24), displacement_range=(5, 30), tie_displacement_range=(30, 90), tie_strength_variation=0.03, shape_a="bell", shape_b="bell", n=300):
-    x = np.arange(n)
-
-    n_peaks = draw_count(rng, peak_count_range)
-    centers = draw_centers(rng, n_peaks, location_range)
-    widths = draw_widths(rng, n_peaks, width_range)
-    heights = draw_heights(rng, n_peaks, signal_level, signal_variation)
-    scenario_noise = noise_level
-
-    if scenario == "easy_agreement":
-        # Same peaks with small position, width, and height perturbations.
-        a = peak_train(x, centers, widths, heights, n)
-        b = peak_train(x, centers + rng.normal(0, 2, n_peaks),
-                       widths * rng.uniform(0.90, 1.10, n_peaks),
-                       heights * rng.uniform(0.90, 1.10, n_peaks), n)
-
-    elif scenario == "pure_displacement":
-        # One displacement is shared by every peak in the window.
-        window_displacement = shared_displacement(rng, centers, displacement_range, n)
-        a = peak_train(x, centers, widths, heights, n)
-        b = peak_train(x, centers + window_displacement, widths, heights, n)
-
-    elif scenario == "width_mismatch":
-        # Shared centers with narrow peaks in A and broad peaks in B.
-        a = peak_train(x, centers, widths * rng.uniform(0.35, 0.65, n_peaks), heights, n)
-        b = peak_train(x, centers + rng.normal(0, 2, n_peaks),
-                       widths * rng.uniform(1.8, 3.2, n_peaks), heights, n)
-
-    elif scenario == "local_agreement_plus_unrelated":
-        # Shared peaks plus independent extra structure.
-        a = peak_train(x, centers, widths, heights, n)
-        b = peak_train(x, centers + rng.normal(0, 2, n_peaks), widths, heights, n)
-
-        n_extra_a = draw_count(rng, unrelated_peak_count_range)
-        n_extra_b = draw_count(rng, unrelated_peak_count_range)
-        centers_a = unrelated_centers(rng, n_extra_a, centers, location_range)
-        centers_b = unrelated_centers(rng, n_extra_b, centers, location_range)
-        widths_a = draw_widths(rng, n_extra_a, width_range)
-        widths_b = draw_widths(rng, n_extra_b, width_range)
-        heights_a = draw_heights(rng, n_extra_a, signal_level * 0.60, signal_variation)
-        heights_b = draw_heights(rng, n_extra_b, signal_level * 0.60, signal_variation)
-
-        a += peak_train(x, centers_a, widths_a, heights_a, n, background=0)
-        b += peak_train(x, centers_b, widths_b, heights_b, n, background=0)
-
-    elif scenario == "broad_signal_plus_peak":
-        # Edge-to-edge signal in A with local peaks in B.
-        block_height = draw_heights(rng, 1, signal_level, signal_variation)[0]
-        a = np.full(n, block_height)
-        b = peak_train(x, centers, widths, heights, n)
-
-    elif scenario == "local_anticorrelation":
-        # Edge-to-edge signal in B with local depletion beneath A's peaks.
-        block_height = draw_heights(rng, 1, signal_level, signal_variation)[0]
-        a = peak_train(x, centers, widths, heights, n)
-        b = np.full(n, block_height)
-
-        for center, width in zip(centers, widths):
-            depth = block_height * rng.uniform(0.55, 0.95)
-            b -= gaussian(x, center, width * rng.uniform(0.65, 1.10), depth)
-
-    elif scenario == "multiple_correspondences":
-        # Independent shifts and extra peaks create ambiguous matches.
-        n_repeated = max(2, n_peaks)
-        centers = draw_centers(rng, n_repeated, location_range)
-        widths = draw_widths(rng, n_repeated, width_range)
-        heights = draw_heights(rng, n_repeated, signal_level, signal_variation)
-
-        a = peak_train(x, centers, widths, heights, n)
-        b_centers = shifted_centers(rng, centers, displacement_range, n)
-
-        n_extra = draw_count(rng, unrelated_peak_count_range)
-        extra_centers = draw_centers(rng, n_extra, location_range)
-        extra_widths = draw_widths(rng, n_extra, width_range)
-        extra_heights = draw_heights(rng, n_extra, signal_level, signal_variation)
-
-        b = peak_train(x, np.r_[b_centers, extra_centers],
-                       np.r_[widths, extra_widths],
-                       np.r_[heights * rng.uniform(0.75, 1.05, n_repeated), extra_heights], n)
-
-    elif scenario == "tie":
-        # Two coherent copies in B create two nearly equal displacement solutions.
-        left_displacement = rng.uniform(*tie_displacement_range)
-        right_displacement = rng.uniform(*tie_displacement_range)
-        tie_location_range = (max(location_range[0], left_displacement),
-                              min(location_range[1], n - 1 - right_displacement))
-
-        if tie_location_range[0] >= tie_location_range[1]:
-            raise ValueError("tie_displacement_range leaves no valid peak locations.")
-
-        centers = draw_centers(rng, n_peaks, tie_location_range)
-        widths = draw_widths(rng, n_peaks, width_range)
-        heights = draw_heights(rng, n_peaks, signal_level, signal_variation)
-        left_heights = heights * rng.uniform(1 - tie_strength_variation, 1 + tie_strength_variation, n_peaks)
-        right_heights = heights * rng.uniform(1 - tie_strength_variation, 1 + tie_strength_variation, n_peaks)
-
-        a = peak_train(x, centers, widths, heights, n)
-        b = peak_train(x, np.r_[centers - left_displacement, centers + right_displacement],
-                       np.r_[widths, widths], np.r_[left_heights, right_heights], n)
-
-    elif scenario == "custom":
-        # Independent custom-shape pairs with per-feature shifts.
-        a = np.zeros(n)
-        b = np.zeros(n)
-        b_centers = shifted_centers(rng, centers, displacement_range, n)
-
-        for center_a, center_b, width, height in zip(centers, b_centers, widths, heights):
-            a += primitive(x, shape_a, center_a, width, height, n)
-            b += primitive(x, shape_b, center_b, width, height * rng.uniform(0.85, 1.15), n)
-
-        a -= 0.06 * max(0, n_peaks - 1)
-        b -= 0.06 * max(0, n_peaks - 1)
-
-    else:
-        raise ValueError(f"unknown scenario: {scenario}")
-
-    a = add_noise(a, rng, scenario_noise, n)
-    b = add_noise(b, rng, scenario_noise, n)
-
-    # Prevent negative signal without flattening legitimate values above 1.
-    return np.maximum(a, 0), np.maximum(b, 0)
 
 def plot_islands(result, title=None):
     matrix = result["matrix"]
     signal_a = result["signal_a"]
     signal_b = result["signal_b"]
-    labels = result["island_labels"]
     islands = result["islands"]
     modes = result["modes"]
     n = len(signal_a)
@@ -910,24 +742,21 @@ def plot_islands(result, title=None):
     ax.plot([-0.5, n - 0.5], [-0.5, n - 0.5], "--", color="white", lw=1)
     ax.set(xlim=(-0.5, n - 0.5), ylim=(-0.5, n - 0.5), xlabel="B position", ylabel="A position")
 
-    island_lookup = {island["island_id"]: island for island in islands}
     mode_colors = ["#ff2d2d", "#ff8c00", "#ffcc00", "#d81b60", "#b23aee",
                    "#ff5e00", "#c1121f", "#ff4d8d", "#e76f00", "#8b1e3f"]
-    island_mode_colors = {}
-    for color_index, mode in enumerate(modes):
-        color = mode_colors[color_index % len(mode_colors)]
-        for island_id in mode["islands"]:
-            island_mode_colors.setdefault(island_id, []).append(color)
-    selected_island_ids = set(island_mode_colors)
+    selected_island_ids = {island_id for mode in modes for island_id in mode["islands"]}
     handles = []
 
-    # Keep every detected ridge visible for displacement diagnostics.
+    # Draw selected ridges faintly and unselected ridges with black outlines.
     for island in islands:
-        if island["island_id"] in selected_island_ids:
-            continue
         ridge = island["ridge"]
         axis_x, axis_y = ridge[:, 1], ridge[:, 0]
-        if len(axis_x) == 1:
+        if island["island_id"] in selected_island_ids:
+            if len(axis_x) == 1:
+                ax.plot(axis_x, axis_y, "o", color="#dddddd", ms=3)
+            else:
+                ax.plot(axis_x, axis_y, color="#dddddd", lw=1.0)
+        elif len(axis_x) == 1:
             ax.plot(axis_x, axis_y, "o", color="black", ms=5)
             ax.plot(axis_x, axis_y, "o", color="#eeeeee", ms=3)
         else:
@@ -937,34 +766,30 @@ def plot_islands(result, title=None):
     if len(selected_island_ids) < len(islands):
         handles.append(ax.plot([], [], color="#eeeeee", lw=1.3, label="unselected ridge")[0])
 
-    # Nested outlines preserve every color when one broad ridge supports more
-    # than one distinct, narrower lag hypothesis.
-    for island_id, colors in island_mode_colors.items():
-        mask = labels == island_id
-        island = island_lookup[island_id]
-        ridge = island["ridge"]
-        axis_x, axis_y = ridge[:, 1], ridge[:, 0]
-        widths = np.linspace(2 + 1.5 * (len(colors) - 1), 2, len(colors))
-        ridge_widths = np.linspace(1.5 + 1.2 * (len(colors) - 1), 1.3, len(colors))
-
-        if mask.any() and (~mask).any():
-            for color, width in zip(colors, widths):
-                ax.contour(mask.astype(float), levels=[0.5], colors=color,
-                           linewidths=width, origin="lower")
-        if len(axis_x) == 1:
-            ax.plot(axis_x, axis_y, "o", color="black", ms=5 + 1.5 * len(colors))
-            for color, marker_size in zip(colors, np.linspace(4 + len(colors), 3, len(colors))):
-                ax.plot(axis_x, axis_y, "o", color=color, ms=marker_size)
-        else:
-            ax.plot(axis_x, axis_y, color="black", lw=max(ridge_widths) + 1.5)
-            for color, width in zip(colors, ridge_widths):
-                ax.plot(axis_x, axis_y, color=color, lw=width)
-
+    # Draw each mode's interval-constrained regions and ridges.
     for color_index, mode in enumerate(modes):
         color = mode_colors[color_index % len(mode_colors)]
+        for island_id in mode["islands"]:
+            region = mode["constrained_regions"][island_id]
+            ridge = mode["constrained_ridges"][island_id]
+
+            if region.any() and (~region).any():
+                ax.contour(region.astype(float), levels=[0.5], colors=color,
+                           linewidths=2, origin="lower")
+
+            if len(ridge) == 0:
+                continue
+            axis_x, axis_y = ridge[:, 1], ridge[:, 0]
+            if len(axis_x) == 1:
+                ax.plot(axis_x, axis_y, "o", color="black", ms=5)
+                ax.plot(axis_x, axis_y, "o", color=color, ms=3)
+            else:
+                ax.plot(axis_x, axis_y, color="black", lw=3)
+                ax.plot(axis_x, axis_y, color=color, lw=1.3)
+
         handles.append(ax.plot([], [], color=color, lw=2,
-                               label=(f"mode {mode['mode_id']} "
-                                      f"(lag {mode['lag_min']:+.1f} to {mode['lag_max']:+.1f})"))[0])
+                               label=(f"mode {mode['mode_id']} (selected lag {mode['lag']:+.1f}; "
+                                      f"allowed {mode['lag_min']:+.1f} to {mode['lag_max']:+.1f})"))[0])
 
     if handles:
         ax.legend(handles=handles, loc="upper left", bbox_to_anchor=(1.28, 1))
@@ -997,8 +822,7 @@ def plot_islands(result, title=None):
     plt.show()
     return fig, {"matrix": ax, "signal_a": ax_left, "signal_b": ax_top, "overlay": ax_overlay}
 
-
-def identify_islands(signal_a, signal_b, seed_threshold_fraction=0.4, growth_threshold_fraction=0.39, max_weak_distance=2, gap_tolerance=1, shape_balance_power=1.05, ridge_fraction=0.9, split_prominence_fraction=0.25, split_min_peak_fraction=0.5, split_min_peak_distance=8, split_smoothing=4.0, split_min_seed_area=5, displacement_fold_threshold=2.0, mode_score_fraction=0.33, title=None, plot=True):
+def identify_islands(signal_a, signal_b, seed_threshold_fraction=0.4, growth_threshold_fraction=0.39, max_weak_distance=2, gap_tolerance=1, shape_balance_power=1.05, ridge_fraction=0.9, split_prominence_fraction=0.25, split_min_peak_fraction=0.5, split_min_peak_distance=8, split_min_seed_area=5, displacement_fold_threshold=2.0, mode_score_fraction=0.33, title=None, plot=True):
     signal_a = np.asarray(signal_a, dtype=float)
     signal_b = np.asarray(signal_b, dtype=float)
 
@@ -1007,21 +831,17 @@ def identify_islands(signal_a, signal_b, seed_threshold_fraction=0.4, growth_thr
     if len(signal_a) != len(signal_b):
         raise ValueError("signal_a and signal_b must have the same length.")
 
-    matrix = correspondence_matrix(signal_a[None, None, :], signal_b[None, None, :],
-                                   core_size=len(signal_a))[0]
-    seed_mask, island_mask, labels, islands = correspondence_islands(
-        matrix, seed_threshold_fraction=seed_threshold_fraction,
-        growth_threshold_fraction=growth_threshold_fraction,
-        max_weak_distance=max_weak_distance, gap_tolerance=gap_tolerance,
-        shape_balance_power=shape_balance_power, ridge_fraction=ridge_fraction,
-        split_prominence_fraction=split_prominence_fraction,
-        split_min_peak_fraction=split_min_peak_fraction,
-        split_min_peak_distance=split_min_peak_distance,
-        split_smoothing=split_smoothing, split_min_seed_area=split_min_seed_area)
-    conflicts = island_conflicts(labels, islands)
-    selection = select_correspondence_modes(
-        islands, conflicts, displacement_fold_threshold=displacement_fold_threshold,
-        mode_score_fraction=mode_score_fraction)
+    matrix = correspondence_matrix(signal_a[None, None, :], signal_b[None, None, :])[0]
+    seed_mask, island_mask, labels, islands = correspondence_islands(matrix, seed_threshold_fraction=seed_threshold_fraction, 
+                                                                     growth_threshold_fraction=growth_threshold_fraction,
+                                                                     max_weak_distance=max_weak_distance, gap_tolerance=gap_tolerance,
+                                                                     shape_balance_power=shape_balance_power, ridge_fraction=ridge_fraction,
+                                                                     split_prominence_fraction=split_prominence_fraction,
+                                                                     split_min_peak_fraction=split_min_peak_fraction,
+                                                                     split_min_peak_distance=split_min_peak_distance, split_min_seed_area=split_min_seed_area)
+    
+    selection = select_correspondence_modes(islands, matrix, labels, shape_balance_power,displacement_fold_threshold=displacement_fold_threshold,
+                                            mode_score_fraction=mode_score_fraction)
 
     result = {
         "signal_a": signal_a,
@@ -1031,10 +851,10 @@ def identify_islands(signal_a, signal_b, seed_threshold_fraction=0.4, growth_thr
         "island_mask": island_mask,
         "island_labels": labels,
         "islands": islands,
-        "conflicts": conflicts,
         "selection": selection,
         "modes": selection["modes"],
         "island_modes": selection["island_modes"],
+        "mode_conflicts": selection["mode_conflicts"],
     }
 
     if plot:

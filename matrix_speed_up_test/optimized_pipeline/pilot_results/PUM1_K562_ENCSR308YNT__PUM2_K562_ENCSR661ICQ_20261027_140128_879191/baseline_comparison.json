@@ -1,0 +1,7 @@
+{
+  "n_windows": 8,
+  "exact_metrics_match": true,
+  "reference_compute_seconds": 1.9477449322585016,
+  "optimized_compute_seconds": 0.22868270426988602,
+  "single_core_speedup": 8.517237621782792
+}
