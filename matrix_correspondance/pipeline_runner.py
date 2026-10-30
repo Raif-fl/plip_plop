@@ -177,6 +177,12 @@ def run_windows(raw_arrays, library_sizes, metadata, indices, configuration, run
         if progress:
             progress.update(1)
             progress.set_postfix(modes=len(mode_rows), errors=n_errors, refresh=False)
+        pilot_windows = configuration.get("pilot_windows", 0)
+        if pilot_windows > 0 and len(timing_rows) == min(pilot_windows, len(indices)):
+            elapsed = perf_counter() - started
+            remaining = (len(indices) - len(timing_rows)) * elapsed / len(timing_rows)
+            message = f"Pilot: {len(timing_rows)} windows in {elapsed:.1f} s; estimated remaining {remaining / 60:.1f} min."
+            tqdm.write(message) if progress else print(message)
         if len(timing_rows) % configuration.get("checkpoint_windows", 100) == 0 or perf_counter() - last_checkpoint >= configuration.get("checkpoint_seconds", 30):
             checkpoint()
             last_checkpoint = perf_counter()
@@ -219,9 +225,17 @@ def run_windows(raw_arrays, library_sizes, metadata, indices, configuration, run
             progress.close()
         modes, windows = checkpoint()
         available = sorted(signals)
-        np.savez_compressed(run_dir / "enrichment_signals.npz", window_idx=np.asarray(available, dtype=int),
-            signal_A=np.stack([signals[index][0] for index in available]) if available else np.empty((0, 300), np.float32),
-            signal_B=np.stack([signals[index][1] for index in available]) if available else np.empty((0, 300), np.float32))
+        if configuration.get("full_signal_archive", False):
+            saved_indices = np.arange(len(metadata))
+            saved_a = np.full((len(metadata), 300), np.nan, dtype=np.float32)
+            saved_b = np.full_like(saved_a, np.nan)
+            for index in available:
+                saved_a[index], saved_b[index] = signals[index]
+        else:
+            saved_indices = np.asarray(available, dtype=int)
+            saved_a = np.stack([signals[index][0] for index in available]) if available else np.empty((0, 300), np.float32)
+            saved_b = np.stack([signals[index][1] for index in available]) if available else np.empty((0, 300), np.float32)
+        np.savez_compressed(run_dir / "enrichment_signals.npz", window_idx=saved_indices, signal_A=saved_a, signal_B=saved_b)
         report = dict(finished=finished, n_requested=len(indices), n_processed=len(windows), n_errors=n_errors,
             n_workers=n_workers, n_modes=len(modes), wall_seconds=perf_counter() - started,
             first_result_seconds=first_result_seconds, utils_path=str(utils_path),

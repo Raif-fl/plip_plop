@@ -5,6 +5,8 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
 from scipy import ndimage
 
+MODE_SCORING_METHOD = "interval_region"
+
 def calculate_rpm_pseudocount(library_sizes):
     """
     Calculates an RPM scale pseudocount that is the equivalent to adding a single read pseudocount to raw data. 
@@ -103,29 +105,37 @@ def island_central_ridge(matrix, region, ridge_fraction=0.9):
     return ridge
 
 def island_axis_profile(matrix, region, axis):
-    """
-    Return a maximum support profile along the A or B axis.
-    A maximum support profile is basically just a line filled with all of the maximum values along an axis. 
-    """
-    # Identify profile along A or B axis. 
+    """Return the maximum support profile along A or B."""
+    rows = np.flatnonzero(region.any(axis=1))
+    columns = np.flatnonzero(region.any(axis=0))
+    if not len(rows) or not len(columns):
+        return np.array([], dtype=int), np.array([], dtype=matrix.dtype)
+    crop = np.s_[rows[0]:rows[-1] + 1, columns[0]:columns[-1] + 1]
+    masked = np.where(region[crop], matrix[crop], -np.inf)
     if axis == "A":
-        positions = np.flatnonzero(region.any(axis=1))
-        profile = np.array([matrix[position, region[position]].max() for position in positions])
-    elif axis == "B":
-        positions = np.flatnonzero(region.any(axis=0))
-        profile = np.array([matrix[region[:, position], position].max() for position in positions])
-
-    return positions, profile
+        return rows, masked.max(axis=1)[rows - rows[0]]
+    if axis == "B":
+        return columns, masked.max(axis=0)[columns - columns[0]]
+    raise ValueError("axis must be A or B.")
 
 def best_island_split(matrix, region, seed_mask, split_prominence_fraction=0.25, split_min_peak_fraction=0.5, split_min_peak_distance=8, split_min_seed_area=5):
     """
     Find the strongest valid island-local valley along either axis.
     """
-    candidates = []
+    rows = np.flatnonzero(region.any(axis=1))
+    columns = np.flatnonzero(region.any(axis=0))
+    if not len(rows) or not len(columns):
+        return None
+    crop = np.s_[rows[0]:rows[-1] + 1, columns[0]:columns[-1] + 1]
+    local_region = region[crop]
+    masked = np.where(local_region, matrix[crop], -np.inf)
+    local_seeds = seed_mask[crop] & local_region
+    best = None
 
-    for axis in ("A", "B"):
-        # Identify the maximum support profile and record its positions. 
-        positions, profile = island_axis_profile(matrix, region, axis)
+    for axis, positions, offset, reduction_axis in (
+        ("A", rows, rows[0], 1), ("B", columns, columns[0], 0)
+    ):
+        profile = masked.max(axis=reduction_axis)[positions - offset]
         
         # Reject any islands too small to evaluate. 
         if len(profile) < 2 * split_min_peak_distance + 1:
@@ -141,6 +151,9 @@ def best_island_split(matrix, region, seed_mask, split_prominence_fraction=0.25,
         # Remove extremely weak peaks relative to other peaks in the island. 
         peaks = peaks[profile[peaks] >= split_min_peak_fraction * profile.max()]
 
+        # Count seed cells on each side without constructing child masks.
+        cumulative_seeds = np.cumsum(np.count_nonzero(local_seeds, axis=reduction_axis))
+
         # Go through all valid peak combinations that can contain valleys. 
         for left_peak, right_peak in zip(peaks[:-1], peaks[1:]):
 
@@ -154,24 +167,24 @@ def best_island_split(matrix, region, seed_mask, split_prominence_fraction=0.25,
             if valley_depth < split_prominence_fraction:
                 continue
 
-            # Make a proposed "cut" for the island seperation. 
             cut = int(positions[valley])
-            coordinates = np.indices(region.shape)[0 if axis == "A" else 1]
-            child_1 = region & (coordinates <= cut)
-            child_2 = region & (coordinates > cut)
-            seed_area_1 = int(np.count_nonzero(seed_mask & child_1))
-            seed_area_2 = int(np.count_nonzero(seed_mask & child_2))
+            seed_area_1 = int(cumulative_seeds[cut - offset])
+            seed_area_2 = int(cumulative_seeds[-1]) - seed_area_1
             if seed_area_1 < split_min_seed_area or seed_area_2 < split_min_seed_area:
                 continue
 
-            candidates.append({
-                "valley_depth": float(valley_depth), 
-                "smaller_peak": float(smaller_peak), 
-                "children": (child_1, child_2),
-            })
+            key = (float(valley_depth), float(smaller_peak))
+            if best is None or key > best[0]:
+                best = (key, axis, cut)
 
-    # Select and return the best proposed split (if any). 
-    return max(candidates, key=lambda x: (x["valley_depth"], x["smaller_peak"])) if candidates else None
+    if best is None:
+        return None
+
+    # Construct masks only for the winning cut.
+    key, axis, cut = best
+    coordinates = np.arange(region.shape[0])[:, None] if axis == "A" else np.arange(region.shape[1])[None, :]
+    return {"valley_depth": key[0], "smaller_peak": key[1],
+            "children": (region & (coordinates <= cut), region & (coordinates > cut))}
 
 def split_island_region(matrix, region, seed_mask, split_prominence_fraction=0.25, split_min_peak_fraction=0.5, split_min_peak_distance=8, split_min_seed_area=5):
     """Recursively split an overmerged island at its strongest valid axis valley."""
@@ -296,52 +309,77 @@ def correspondence_islands(matrix, seed_threshold_fraction=0.4, growth_threshold
     
     return seed_mask, island_mask, labels, islands
 
+# Legacy single-lag helpers; mode selection uses interval regions below.
+class _LagScoringContext:
+    """Cache diagonal data and island scores for one window."""
+
+    def __init__(self, matrix, labels, shape_balance_power):
+        self.matrix = matrix
+        self.labels = labels
+        self.shape_balance_power = shape_balance_power
+        self.diagonals = {}
+        self.summaries = {}
+
+    def diagonal(self, lag):
+        if lag not in self.diagonals:
+            first_row = max(0, -lag)
+            last_row = min(self.matrix.shape[0], self.matrix.shape[1] - lag)
+            rows = np.arange(first_row, max(first_row, last_row))
+            columns = rows + lag
+            self.diagonals[lag] = (rows, columns, self.labels[rows, columns], self.matrix[rows, columns])
+        return self.diagonals[lag]
+
+    def summary(self, island_id, lag):
+        key = (island_id, float(lag))
+        if key in self.summaries:
+            return self.summaries[key]
+
+        # A fractional lag intersects at most two diagonals.
+        parts = []
+        for diagonal_lag in sorted({int(np.floor(lag)), int(np.ceil(lag))}):
+            if np.maximum(1 - np.abs(diagonal_lag - lag), 0) <= 0:
+                continue
+            rows, columns, ids, values = self.diagonal(diagonal_lag)
+            keep = ids == island_id
+            if keep.any():
+                parts.append((rows[keep], columns[keep], values[keep]))
+
+        if parts:
+            rows = np.concatenate([part[0] for part in parts])
+            columns = np.concatenate([part[1] for part in parts])
+            values = np.concatenate([part[2] for part in parts])
+            # Match the original row-major summation order.
+            order = np.argsort(rows * self.matrix.shape[1] + columns, kind="stable")
+            rows, columns, values = rows[order], columns[order], values[order]
+            weights = np.maximum(1 - np.abs((columns - rows) - lag), 0)
+            bounds = (int(rows.min()), int(rows.max()), int(columns.min()), int(columns.max()))
+            A_width, B_width = bounds[1] - bounds[0] + 1, bounds[3] - bounds[2] + 1
+            total_support = np.sum(values * weights)
+            selection_score = total_support * (min(A_width, B_width) / max(A_width, B_width)) ** self.shape_balance_power
+        else:
+            rows = columns = np.array([], dtype=int)
+            bounds, total_support, selection_score = None, 0.0, 0.0
+
+        summary = dict(island_id=island_id, rows=rows, columns=columns, bounds=bounds,
+                       total_support=total_support, selection_score=selection_score)
+        self.summaries[key] = summary
+        return summary
+
+    def materialize(self, island, lag):
+        summary = self.summary(island["island_id"], lag)
+        region = np.zeros(self.labels.shape, dtype=bool)
+        region[summary["rows"], summary["columns"]] = True
+        ridge = island["ridge"]
+        ridge_lags = ridge[:, 1] - ridge[:, 0]
+        ridge = ridge[np.abs(ridge_lags - lag) <= 0.5] if summary["bounds"] is not None else np.empty((0, 2), dtype=float)
+        return dict(island_id=island["island_id"], region=region, ridge=ridge,
+                    total_support=summary["total_support"], selection_score=summary["selection_score"])
+
+
 def constrain_island_to_lag(matrix, labels, island, cell_lags, lag, shape_balance_power):
-    """
-    Restrict one island to a single shared lag for scoring and conflicts.
-    """
-
-    # Select the island cells.
-    full_region = labels == island["island_id"]
-
-    # Weight the two diagonals nearest the requested lag.
-    line_weights = np.maximum(1 - np.abs(cell_lags - lag), 0)
-
-    # Extract out region where line weights are above 0. 
-    region = full_region & (line_weights > 0)
-
-    # Extract out coordinates of valid region. 
-    coordinates = np.argwhere(region)
-    # An allowed lag may pass through a gap in the island.
-    if len(coordinates) == 0:
-        return {
-            "island_id": island["island_id"], "region": region,
-            "ridge": np.empty((0, 2), dtype=float),
-            "total_support": 0.0, "selection_score": 0.0,
-        }
-
-    A_positions = coordinates[:, 0]
-    B_positions = coordinates[:, 1]
-
-    # Get new widths and support score. 
-    A_width = A_positions.max() - A_positions.min() + 1
-    B_width = B_positions.max() - B_positions.min() + 1
-    total_support = np.sum(matrix[region] * line_weights[region])
-    shape_balance = min(A_width, B_width) / max(A_width, B_width)
-    selection_score = total_support * shape_balance ** shape_balance_power
-
-    # Keep ridge points within half a cell of the selected lag.
-    ridge = island["ridge"]
-    ridge_lags = ridge[:, 1] - ridge[:, 0]
-    ridge = ridge[np.abs(ridge_lags - lag) <= 0.5]
-
-    return {
-        "island_id": island["island_id"],
-        "region": region,
-        "ridge": ridge,
-        "total_support": total_support,
-        "selection_score": selection_score,
-    }
+    """Restrict one island to a single shared lag."""
+    context = _LagScoringContext(matrix, labels, shape_balance_power)
+    return context.materialize(island, lag)
 
 def constrain_island_to_mode_interval(labels, island, cell_lags, lag_min, lag_max):
     """Return the full island area reachable anywhere within a mode interval."""
@@ -373,7 +411,11 @@ def strongest_mode_compatible_subset(members):
     """Find the strongest position-preserving subset of constrained members."""
 
     # Attach region bounds and sort members by their starting positions.
-    bounded = [(member, *region_bounds(member["region"])) for member in members if member["region"].any()]
+    bounded = []
+    for member in members:
+        bounds = member.get("bounds") if "bounds" in member else (region_bounds(member["region"]) if member["region"].any() else None)
+        if bounds is not None:
+            bounded.append((member, *bounds))
     if not bounded:
         return (), 0.0
 
@@ -402,24 +444,11 @@ def strongest_mode_compatible_subset(members):
     best_index = max(range(len(ordered)), key=lambda i: (best_scores[i], len(best_paths[i])))
     return best_paths[best_index], best_scores[best_index]
 
-def score_correspondence_mode_at_lag(members, matrix, labels, cell_lags, shape_balance_power, lag):
-    """Constrain every member to one shared lag and score the resulting mode."""
-
-    # Constrain every member to the requested lag.
-    constrained_members = [
-        constrain_island_to_lag(matrix, labels, island, cell_lags, lag, shape_balance_power)
-        for island in members
-    ]
-
-    # Select the highest-scoring chain with non-overlapping A and B ranges.
+def _score_mode_lag(members, context, lag):
+    """Score a lag using cached coordinates and bounds."""
+    constrained_members = [context.summary(island["island_id"], lag) for island in members]
     compatible_islands, compatible_score = strongest_mode_compatible_subset(constrained_members)
     compatible_ids = set(compatible_islands)
-    region_conflict_pairs = tuple(
-        (constrained_members[i]["island_id"], constrained_members[j]["island_id"])
-        for i in range(len(constrained_members)) for j in range(i + 1, len(constrained_members))
-        if regions_conflict(constrained_members[i]["region"], constrained_members[j]["region"])
-    )
-    possible_pairs = len(constrained_members) * (len(constrained_members) - 1) / 2
     candidate_ids = tuple(sorted(member["island_id"] for member in constrained_members))
     excluded_ids = tuple(island_id for island_id in candidate_ids if island_id not in compatible_ids)
 
@@ -431,18 +460,34 @@ def score_correspondence_mode_at_lag(members, matrix, labels, cell_lags, shape_b
         "n_islands": len(compatible_islands),
         "compatible_islands": compatible_islands,
         "n_independent_islands": len(compatible_islands),
-        "region_conflicts": region_conflict_pairs,
-        "conflict_fraction": len(region_conflict_pairs) / possible_pairs if possible_pairs else 0.0,
         "lag": float(lag),
         "selection_score": compatible_score,
         "all_island_score": sum(member["selection_score"] for member in constrained_members),
         "total_support": sum(member["total_support"] for member in constrained_members),
         "compatible_total_support": sum(member["total_support"] for member in constrained_members
                                         if member["island_id"] in compatible_ids),
-        "scoring_regions": {member["island_id"]: member["region"] for member in constrained_members},
         "member_selection_scores": {member["island_id"]: member["selection_score"]
                                     for member in constrained_members},
     }
+
+
+def _materialize_mode_lag(mode, members, context):
+    """Construct masks and conflict diagnostics for the selected lag."""
+    constrained = [context.materialize(island, mode["lag"]) for island in members]
+    conflicts = tuple((constrained[i]["island_id"], constrained[j]["island_id"])
+                      for i in range(len(constrained)) for j in range(i + 1, len(constrained))
+                      if regions_conflict(constrained[i]["region"], constrained[j]["region"]))
+    possible_pairs = len(constrained) * (len(constrained) - 1) / 2
+    mode["region_conflicts"] = conflicts
+    mode["conflict_fraction"] = len(conflicts) / possible_pairs if possible_pairs else 0.0
+    mode["scoring_regions"] = {member["island_id"]: member["region"] for member in constrained}
+    return mode
+
+
+def score_correspondence_mode_at_lag(members, matrix, labels, cell_lags, shape_balance_power, lag):
+    """Constrain every member to one shared lag and score the mode."""
+    context = _LagScoringContext(matrix, labels, shape_balance_power)
+    return _materialize_mode_lag(_score_mode_lag(members, context, lag), members, context)
 
 def candidate_mode_lags(lag_min, lag_max):
     """Return every lag at which a mode's line score can reach a maximum."""
@@ -451,60 +496,69 @@ def candidate_mode_lags(lag_min, lag_max):
     integer_lags = np.arange(np.ceil(lag_min), np.floor(lag_max) + 1)
     return np.unique(np.concatenate(([lag_min], integer_lags, [lag_max]))).astype(float)
 
-def build_correspondence_mode(members, matrix, labels, shape_balance_power, lag_min, lag_max):
-    """Move one shared line through a mode interval and retain its best lag."""
-
-    # Calculate the lag at each matrix position.
-    A_coordinates, B_coordinates = np.indices(matrix.shape)
-    cell_lags = B_coordinates - A_coordinates
-
-    # Score the member set at each candidate lag.
-    scored_lags = [
-        score_correspondence_mode_at_lag(members, matrix, labels, cell_lags, shape_balance_power, lag)
-        for lag in candidate_mode_lags(lag_min, lag_max)
-    ]
-    # Only supported lags can represent a mode.
-    supported_lags = [candidate for candidate in scored_lags if candidate["n_islands"] > 0]
-    if not supported_lags:
+def build_correspondence_mode(members, matrix, labels, shape_balance_power, lag_min, lag_max, _cell_lags=None):
+    """Score each member over its full mode-constrained region."""
+    if lag_min > lag_max:
         return None
+    cell_lags = _cell_lags
+    if cell_lags is None:
+        A_coordinates, B_coordinates = np.indices(matrix.shape)
+        cell_lags = B_coordinates - A_coordinates
 
-    # Break score ties by member count, total evidence, then interval proximity.
-    interval_center = (lag_min + lag_max) / 2
-    mode = max(supported_lags, key=lambda x: (
-        x["selection_score"], x["n_islands"], x["all_island_score"],
-        -abs(x["lag"] - interval_center)))
-
-    mode["lag_min"] = lag_min
-    mode["lag_max"] = lag_max
-    mode["zero_lag"] = lag_min <= 0 <= lag_max
-    mode["evaluated_lags"] = tuple(candidate["lag"] for candidate in scored_lags)
-
-    # Build interval-constrained regions and ridges for each member.
     interval_members = [
         constrain_island_to_mode_interval(labels, island, cell_lags, lag_min, lag_max)
         for island in members
     ]
-    mode["constrained_regions"] = {member["island_id"]: member["region"] for member in interval_members}
-    mode["constrained_ridges"] = {member["island_id"]: member["ridge"] for member in interval_members}
-    return mode
+    supported = [member for member in interval_members if member["region"].any()]
+    if not supported:
+        return None
 
-def summarize_correspondence_mode(members, matrix, labels, shape_balance_power):
+    # Sum each region's signal and apply its bounding-box shape penalty.
+    member_scores, member_support = {}, {}
+    for member in supported:
+        A_min, A_max, B_min, B_max = region_bounds(member["region"])
+        A_width, B_width = A_max - A_min + 1, B_max - B_min + 1
+        support = np.sum(matrix[member["region"]], dtype=float)
+        member_support[member["island_id"]] = support
+        member_scores[member["island_id"]] = support * (min(A_width, B_width) / max(A_width, B_width)) ** shape_balance_power
+
+    # Retain all supported members of the already-defined mode.
+    candidate_ids = tuple(sorted(member["island_id"] for member in interval_members))
+    island_ids = tuple(sorted(member_scores))
+    regions = {member["island_id"]: member["region"] for member in interval_members}
+    conflicts = tuple((left, right) for i, left in enumerate(island_ids) for right in island_ids[i + 1:]
+                      if regions_conflict(regions[left], regions[right]))
+    possible_pairs = len(island_ids) * (len(island_ids) - 1) / 2
+    return {
+        "candidate_islands": candidate_ids, "islands": island_ids,
+        "excluded_islands": tuple(island_id for island_id in candidate_ids if island_id not in member_scores),
+        "n_candidate_islands": len(candidate_ids), "n_islands": len(island_ids),
+        "selection_score": sum(member_scores.values()), "total_support": sum(member_support.values()),
+        "member_selection_scores": member_scores, "scoring_method": MODE_SCORING_METHOD,
+        "region_conflicts": conflicts, "conflict_fraction": len(conflicts) / possible_pairs if possible_pairs else 0.0,
+        "scoring_regions": regions, "constrained_regions": regions,
+        "constrained_ridges": {member["island_id"]: member["ridge"] for member in interval_members},
+        "lag_min": lag_min, "lag_max": lag_max, "zero_lag": lag_min <= 0 <= lag_max,
+        "evaluated_lags": (),
+    }
+
+def summarize_correspondence_mode(members, matrix, labels, shape_balance_power, _cell_lags=None):
     """Find the common lag interval and build its mode-constrained regions."""
     lag_min = max(island["lag_min"] for island in members)
     lag_max = min(island["lag_max"] for island in members)
-    return build_correspondence_mode(members, matrix, labels, shape_balance_power, lag_min, lag_max)
+    return build_correspondence_mode(members, matrix, labels, shape_balance_power, lag_min, lag_max, _cell_lags=_cell_lags)
 
 def number_modes(modes):
-    """Sort modes by representative lag and assign sequential IDs."""
+    """Sort modes by interval midpoint and assign sequential IDs."""
 
     numbered = []
-    for mode_id, mode in enumerate(sorted(modes, key=lambda x: (x["lag"], x["lag_min"], x["lag_max"])), start=1):
+    for mode_id, mode in enumerate(sorted(modes, key=lambda x: ((x["lag_min"] + x["lag_max"]) / 2, x["lag_min"], x["lag_max"], x["islands"])), start=1):
         numbered_mode = dict(mode)
         numbered_mode["mode_id"] = mode_id
         numbered.append(numbered_mode)
     return numbered
 
-def correspondence_modes(islands, matrix, labels, shape_balance_power):
+def correspondence_modes(islands, matrix, labels, shape_balance_power, _cell_lags=None):
     """Find maximal island groups with overlapping ridge-lag intervals."""
 
     # Collect all ridge-interval endpoints.
@@ -523,30 +577,33 @@ def correspondence_modes(islands, matrix, labels, shape_balance_power):
     # Index islands by ID.
     island_lookup = {island["island_id"]: island for island in islands}
 
+    if _cell_lags is None:
+        A_coordinates, B_coordinates = np.indices(matrix.shape)
+        _cell_lags = B_coordinates - A_coordinates
     # Build each maximal set over its shared lag interval.
     modes = [
         summarize_correspondence_mode(
             [island_lookup[island_id] for island_id in sorted(group)],
-            matrix, labels, shape_balance_power)
+            matrix, labels, shape_balance_power, _cell_lags=_cell_lags)
         for group in maximal_sets
     ]
     return number_modes([mode for mode in modes if mode is not None])
 
 def modes_conflict(mode_1, mode_2):
-    """Return whether two modes reuse A or B signal at their selected lags."""
-    for island_1 in mode_1["compatible_islands"]:
+    """Return whether two modes' regions reuse A or B signal."""
+    for island_1 in mode_1["islands"]:
         region_1 = mode_1["scoring_regions"][island_1]
-        for island_2 in mode_2["compatible_islands"]:
+        for island_2 in mode_2["islands"]:
             region_2 = mode_2["scoring_regions"][island_2]
             if regions_conflict(region_1, region_2):
                 return True
     return False
 
-def remove_mode_members_conflicting_with_reference(mode, reference_mode, island_lookup, matrix, labels, shape_balance_power):
+def remove_mode_members_conflicting_with_reference(mode, reference_mode, island_lookup, matrix, labels, shape_balance_power, _cell_lags=None):
     """Remove only the portions of a mode that compete with a retained mode."""
     reference_regions = [
         reference_mode["scoring_regions"][island_id]
-        for island_id in reference_mode["compatible_islands"]
+        for island_id in reference_mode["islands"]
     ]
     remaining_ids = []
     removed_ids = []
@@ -566,7 +623,7 @@ def remove_mode_members_conflicting_with_reference(mode, reference_mode, island_
     remaining_members = [island_lookup[island_id] for island_id in remaining_ids]
     trimmed_mode = build_correspondence_mode(
         remaining_members, matrix, labels, shape_balance_power,
-        mode["lag_min"], mode["lag_max"])
+        mode["lag_min"], mode["lag_max"], _cell_lags=_cell_lags)
     return trimmed_mode, tuple(removed_ids)
 
 def select_correspondence_modes(islands, matrix, labels, shape_balance_power, displacement_fold_threshold=2.0, mode_score_fraction=0.33):
@@ -575,7 +632,9 @@ def select_correspondence_modes(islands, matrix, labels, shape_balance_power, di
     """
 
     # Build all provisional modes.
-    provisional_modes = correspondence_modes(islands, matrix, labels, shape_balance_power)
+    A_coordinates, B_coordinates = np.indices(matrix.shape)
+    cell_lags = B_coordinates - A_coordinates
+    provisional_modes = correspondence_modes(islands, matrix, labels, shape_balance_power, _cell_lags=cell_lags)
 
     # Return an empty selection when no provisional modes exist.
     if not provisional_modes:
@@ -628,7 +687,7 @@ def select_correspondence_modes(islands, matrix, labels, shape_balance_power, di
                 "central_mode_id": central_mode["mode_id"],
                 "central_score": central_mode["selection_score"],
                 "central_lag_interval": (central_mode["lag_min"], central_mode["lag_max"]),
-                "central_compatible_islands": central_mode["compatible_islands"],
+                "central_islands": central_mode["islands"],
                 "score_fraction_of_strongest": central_mode["score_fraction_of_strongest"],
             }
 
@@ -641,7 +700,7 @@ def select_correspondence_modes(islands, matrix, labels, shape_balance_power, di
                 "central_mode_id": central_mode["mode_id"],
                 "central_score": central_mode["selection_score"],
                 "central_lag_interval": (central_mode["lag_min"], central_mode["lag_max"]),
-                "central_compatible_islands": central_mode["compatible_islands"],
+                "central_islands": central_mode["islands"],
                 "displaced_mode_id": strongest_conflicting["mode_id"],
                 "displaced_score": strongest_conflicting["selection_score"],
                 "required_displaced_score": displacement_fold_threshold * central_mode["selection_score"],
@@ -656,7 +715,7 @@ def select_correspondence_modes(islands, matrix, labels, shape_balance_power, di
                     continue
 
                 trimmed_mode, removed_ids = remove_mode_members_conflicting_with_reference(
-                    mode, central_mode, island_lookup, matrix, labels, shape_balance_power)
+                    mode, central_mode, island_lookup, matrix, labels, shape_balance_power, _cell_lags=cell_lags)
                 if removed_ids:
                     removed_mode_members.append({
                         "provisional_mode_id": mode["mode_id"],
@@ -670,7 +729,7 @@ def select_correspondence_modes(islands, matrix, labels, shape_balance_power, di
                 "central_mode_id": central_mode["mode_id"],
                 "central_score": central_mode["selection_score"],
                 "central_lag_interval": (central_mode["lag_min"], central_mode["lag_max"]),
-                "central_compatible_islands": central_mode["compatible_islands"],
+                "central_islands": central_mode["islands"],
                 "strongest_conflicting_mode_id": strongest_conflicting["mode_id"] if strongest_conflicting else None,
                 "strongest_conflicting_score": strongest_conflicting["selection_score"] if strongest_conflicting else None,
             }
@@ -690,7 +749,8 @@ def select_correspondence_modes(islands, matrix, labels, shape_balance_power, di
     # Keep candidates above the score-fraction threshold.
     retained_candidates = [mode for mode in candidate_modes
                            if mode["score_fraction_of_strongest"] >= mode_score_fraction]
-    rejected_mode_ids = {mode["mode_id"] for mode in candidate_modes if mode not in retained_candidates}
+    retained_ids = {mode["mode_id"] for mode in retained_candidates}
+    rejected_mode_ids = {mode["mode_id"] for mode in candidate_modes if mode["mode_id"] not in retained_ids}
 
     # Renumber retained modes while preserving their candidate IDs.
     modes = []
@@ -721,7 +781,7 @@ def select_correspondence_modes(islands, matrix, labels, shape_balance_power, di
         "removed_mode_members": removed_mode_members,
     }
 
-def plot_islands(result, title=None):
+def plot_islands(result, title=None, mode_lines=None):
     matrix = result["matrix"]
     signal_a = result["signal_a"]
     signal_b = result["signal_b"]
@@ -788,8 +848,33 @@ def plot_islands(result, title=None):
                 ax.plot(axis_x, axis_y, color=color, lw=1.3)
 
         handles.append(ax.plot([], [], color=color, lw=2,
-                               label=(f"mode {mode['mode_id']} (selected lag {mode['lag']:+.1f}; "
-                                      f"allowed {mode['lag_min']:+.1f} to {mode['lag_max']:+.1f})"))[0])
+                               label=(f"mode {mode['mode_id']} (allowed "
+                                      f"{mode['lag_min']:+.1f} to {mode['lag_max']:+.1f})"))[0])
+
+    # Overlay mode curves and their median-centered angle lines.
+    line_labels = set()
+    for mode in (modes if mode_lines is not None else []):
+        lines = mode_lines[mode["mode_id"]]
+        for key, color, style, label in (
+            ("box_diagonal", "white", ":", "Mode-box diagonal (reference)"),
+            ("visible_quantile", "cyan", "-", "Mode quantile matching"),
+            ("straight", "orange", "-", f'{lines["angle_quantiles"][0]:.0%}–{lines["angle_quantiles"][1]:.0%} mode angle'),
+        ):
+            x, y = lines[key]
+            if not (np.isfinite(x) & np.isfinite(y)).any():
+                continue
+            handle = ax.plot(x, y, color=color, linestyle=style, lw=1.2 if key == "box_diagonal" else 2,
+                             zorder=4 if key == "box_diagonal" else 5)[0]
+            if label not in line_labels:
+                handle.set_label(label)
+                handles.append(handle)
+                line_labels.add(label)
+        median_b, median_a = lines["landmarks"][0][1], lines["landmarks"][1][1]
+        median = ax.scatter(median_b, median_a, s=45, color="orange", edgecolor="black", zorder=6)
+        if "Mode median" not in line_labels:
+            median.set_label("Mode median")
+            handles.append(median)
+            line_labels.add("Mode median")
 
     if handles:
         ax.legend(handles=handles, loc="upper left", bbox_to_anchor=(1.28, 1))

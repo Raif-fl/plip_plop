@@ -1,3 +1,0 @@
-comparison_id	category	experiment_A	experiment_B	path	n_windows	positions	status	size_mb
-0	similar	FUS_HepG2_ENCSR464OSH	TAF15_HepG2_ENCSR841EQA	/tscc/lustre/ddn/scratch/kflanagan/plip_plop_results/processed_inputs/FUS_HepG2_ENCSR464OSH_TAF15_HepG2_ENCSR841EQA.npz	17981	300	ready	7.545512
-1	similar	PUM1_K562_ENCSR308YNT	PUM2_K562_ENCSR661ICQ	/tscc/lustre/ddn/scratch/kflanagan/plip_plop_results/processed_inputs/PUM1_K562_ENCSR308YNT_PUM2_K562_ENCSR661ICQ.npz	12955	300	ready	4.686861
